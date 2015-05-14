@@ -196,11 +196,8 @@
 		D4A9E5EB18A95E04002A9EA5 /* lvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lvm.h; path = lua/src/lvm.h; sourceTree = "<group>"; };
 		D4A9E5EC18A95E04002A9EA5 /* lzio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzio.c; path = lua/src/lzio.c; sourceTree = "<group>"; };
 		D4A9E5ED18A95E04002A9EA5 /* lzio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzio.h; path = lua/src/lzio.h; sourceTree = "<group>"; };
-		D4A9E60E18A95EB8002A9EA5 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		D4A9E61018A95EC1002A9EA5 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		D4A9E61218A95F23002A9EA5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		D4A9E61818A95F6F002A9EA5 /* libobjc2lua.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjc2lua.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		D4A9E61918A95F6F002A9EA5 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D4A9E61C18A95F6F002A9EA5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D4A9E61D18A95F6F002A9EA5 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D4A9E61E18A95F6F002A9EA5 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -263,11 +260,8 @@
 		D4A9E52B18A95B69002A9EA5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D4A9E61218A95F23002A9EA5 /* CoreGraphics.framework */,
-				D4A9E61018A95EC1002A9EA5 /* QuartzCore.framework */,
-				D4A9E60E18A95EB8002A9EA5 /* Quartz.framework */,
 				D4A9E52C18A95B69002A9EA5 /* Foundation.framework */,
-				D4A9E61918A95F6F002A9EA5 /* Cocoa.framework */,
+				D4A9E61018A95EC1002A9EA5 /* QuartzCore.framework */,
 				D4A9E62A18A95F6F002A9EA5 /* XCTest.framework */,
 				D4A9E69418A9616C002A9EA5 /* UIKit.framework */,
 				D4A9E61B18A95F6F002A9EA5 /* Other Frameworks */,
