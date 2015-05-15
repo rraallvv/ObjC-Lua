@@ -401,8 +401,13 @@ static inline id toObjC(lua_State *L, int index) {
             lua_pop(L, 1); // pop the table off
             return result;
         }
-        case LUA_TFUNCTION:
         case LUA_TUSERDATA:
+        {
+            LuaWrapperObject *wrapper = (LuaWrapperObject*)luaL_checkudata(L, index, LuaWrapperObjectMetatableName);
+            if( wrapper )
+                return (__bridge id)wrapper->instance;
+        }
+        case LUA_TFUNCTION:
         case LUA_TTHREAD:
         case LUA_TLIGHTUSERDATA:
         default:
