@@ -58,15 +58,16 @@ typedef NS_ENUM(NSUInteger, LuaErrorCode) {
 /**
  @param script A Lua script to be parsed and added to this context
  @param error will only be set if this method returns `NO`
- @return `YES` on success, otherwise `NO` and `error` will be set
+ @return value returned for the script on success, otherwise nil and `error` will be set
+
  */
-- (BOOL)parse:(NSString*)script error:(out NSError**)error;
+- (id)parse:(NSString*)script error:(out NSError**)error;
 /**
  @param url The path to a Lua script to be parsed and added to this context. Currently only accepts URLs with the scheme 'file://'
  @param error will only be set if this method returns `NO`
- @return `YES` on success, otherwise `NO` and `error` will be set
+ @return value returned for the script on success, otherwise nil and `error` will be set
  */
-- (BOOL)parseURL:(NSURL*)url error:(out NSError**)error;
+- (id)parseURL:(NSURL*)url error:(out NSError**)error;
 /**
  @param name The name of the Lua function that already exists in this context to call.
  @param args Arguments to pass to the function. Any non-specified args will be passed as if they were set to [NSNull null]

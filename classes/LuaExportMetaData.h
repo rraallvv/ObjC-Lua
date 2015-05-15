@@ -27,3 +27,17 @@
 - (id)callMethod:(const char*)method withArgs:(NSArray*)args onInstance:(id)instance;
 
 @end
+
+@interface LuaExportBlockMetaData : NSObject {
+@public
+    NSInvocation *invocation;
+    NSArray *argumentSizes;
+}
+
++ (LuaExportBlockMetaData*)blockMetaDataFor:(id)blockObj;
+
+- (id)initWithBlock:(id)blockObj;
+
+- (id)callWithArgs:(NSArray *)args onInstance:(id)instance;
+
+@end

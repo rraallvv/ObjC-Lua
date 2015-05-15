@@ -55,6 +55,8 @@ static inline BOOL compareFloatsEpsilon(float a, float b) {
 
 - (CATransform3D)passThroughMatrix:(CATransform3D)matrix;
 
+- (NSString *)runBlock:(NSString *(^)(NSString *))block;
+
 @end
 
 @interface InheritedExportObject : ExportObject
@@ -177,6 +179,10 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 	return matrix;
 }
 
+- (NSString *)runBlock:(NSString *(^)(NSString *))block {
+    return block(self.privateString);
+}
+
 - (void)dealloc {
     //NSLog(@"dealloc");
 }
@@ -240,6 +246,8 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 
 - (CATransform3D)passThroughMatrix:(CATransform3D)matrix;
 
+- (NSString *)runBlock:(NSString *(^)(NSString *))block;
+
 @end
 
 @interface ExportObject (Exports) <ExportObjectExports>
@@ -277,34 +285,76 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 	id result;
 
     ctx[@"x"] = @5;
+    XCTAssert( [ctx[@"x"] intValue] == 5, @"x != 5");
     result = [ctx call:"say" with:@[ @"test int" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result intValue] == 5, @"result != 5");
 
+    ctx[@"x"] = @YES;
+    XCTAssert( [ctx[@"x"] boolValue] == YES, @"x != YES");
+    result = [ctx call:"say" with:@[ @"test bool" ] error:&error];
+    XCTAssert( ! error, @"failed to run say: %@", error);
+    NSLog(@"say returned: %@", result);
+    XCTAssert( [result boolValue] == YES, @"result != YES");
+
+    ctx[@"x"] = @NO;
+    XCTAssert( [ctx[@"x"] boolValue] == NO, @"x != NO");
+    result = [ctx call:"say" with:@[ @"test bool" ] error:&error];
+    XCTAssert( ! error, @"failed to run say: %@", error);
+    NSLog(@"say returned: %@", result);
+    XCTAssert( [result boolValue] == NO, @"result != NO");
+
     ctx[@"x"] = @M_PI;
+    XCTAssert( [ctx[@"x"] doubleValue] == M_PI, @"x != Pi");
     result = [ctx call:"say" with:@[ @"test float" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result doubleValue] == M_PI, @"result != Pi");
 
     ctx[@"x"] = @"string";
+    XCTAssert( [ctx[@"x"] isEqualToString:@"string"], @"x != 'string'");
     result = [ctx call:"say" with:@[ @"test string" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result isEqualToString:@"string"], @"result != 'string'");
 
     ctx[@"x"] = @[ @3, @2, @1 ];
+    XCTAssert( [ctx[@"x"][0] intValue] == 3 && [ctx[@"x"][1] intValue] == 2 && [ctx[@"x"][2] intValue] == 1, @"x != [3, 2, 1]");
     result = [ctx call:"say" with:@[ @"test array" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
-    XCTAssert( [result[0] intValue] == 3 && [result[1] intValue] == 2 && [result[2] intValue] == 1, @"result != 'string'");
+    XCTAssert( [result[0] intValue] == 3 && [result[1] intValue] == 2 && [result[2] intValue] == 1, @"result != [3, 2, 1]");
 
     ctx[@"x"] = @{ @"a": @3, @"b": @2, @"c": @1 };
+    XCTAssert( [ctx[@"x"][@"a"] intValue] == 3 && [ctx[@"x"][@"b"] intValue] == 2 && [ctx[@"x"][@"c"] intValue] == 1, @"x != {a=3, b=2, c=1}");
     result = [ctx call:"say" with:@[ @"test dictionary" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
-    XCTAssert( [result[@"a"] intValue] == 3 && [result[@"b"] intValue] == 2 && [result[@"c"] intValue] == 1, @"result != 'string'");
+    XCTAssert( [result[@"a"] intValue] == 3 && [result[@"b"] intValue] == 2 && [result[@"c"] intValue] == 1, @"result != {a=3, b=2, c=1}");
+
+    ctx[@"x"] = [NSValue valueWithPoint:CGPointMake(12, 34)];
+    XCTAssert( [ctx[@"x"][@"x"] doubleValue] == 12 &&  [ctx[@"x"][@"y"] doubleValue] == 34, @"x != {12, 34}");
+    result = [ctx call:"say" with:@[ @"test point" ] error:&error];
+    XCTAssert( ! error, @"failed to run say: %@", error);
+    NSLog(@"say returned: %@", result);
+    XCTAssert( [result[@"x"] doubleValue] == 12 &&  [result[@"y"] doubleValue] == 34, @"result != {12, 34}");
+
+    ctx[@"x"] = [NSValue valueWithSize:CGSizeMake(12, 34)];
+    XCTAssert( [ctx[@"x"][@"width"] doubleValue] == 12 &&  [ctx[@"x"][@"height"] doubleValue] == 34, @"x != {12, 34}");
+    result = [ctx call:"say" with:@[ @"test size" ] error:&error];
+    XCTAssert( ! error, @"failed to run say: %@", error);
+    NSLog(@"say returned: %@", result);
+    XCTAssert( [result[@"width"] doubleValue] == 12 &&  [result[@"height"] doubleValue] == 34, @"result != {12, 34}");
+
+    ctx[@"x"] = [NSValue valueWithRect:CGRectMake(12, 34, 56, 78)];
+    XCTAssert( [ctx[@"x"][@"x"] doubleValue] == 12 && [ctx[@"x"][@"y"] doubleValue] == 34
+              && [ctx[@"x"][@"width"] doubleValue] == 56 && [ctx[@"x"][@"height"] doubleValue] == 78,  @"x != {{12, 34}, {56, 78}}");
+    result = [ctx call:"say" with:@[ @"test rect" ] error:&error];
+    XCTAssert( ! error, @"failed to run say: %@", error);
+    NSLog(@"say returned: %@", result);
+    XCTAssert( [result[@"x"] doubleValue] == 12 && [result[@"y"] doubleValue] == 34
+              && [result[@"width"] doubleValue] == 56 && [result[@"height"] doubleValue] == 78,  @"result != {{12, 34}, {56, 78}}");
 }
 
 static inline BOOL CGAffineTransformEqualToTransformEpsilon(CGAffineTransform t1, CGAffineTransform t2) {
@@ -652,6 +702,85 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     XCTAssert( ! error, @"unexpected error: %@", error);
     // yes, this is dependent on how [NSDictionary description] behaves, but it's "good enough"
     XCTAssert( [result isEqualToString:@"{\n    a = 1;\n    b = 2;\n    c = 3;\n}"], @"result is wrong");
+}
+
+- (void)testBlocks {
+    LuaContext *ctx = [LuaContext new];
+
+    NSError *error = nil;
+
+    ExportObject *obj = [ExportObject new];
+    obj.privateString = @"private string";
+
+    ctx[@"exObject"] = obj;
+
+    id result;
+
+    ctx[@"exBlock"] = ^(NSString *arg) {
+        return [NSString stringWithFormat:@"block result: %@", arg];
+    };
+    result = [ctx parse:@"return exObject.runBlock(exBlock)" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result isEqualTo:@"block result: private string"], @"result is wrong");
+
+    result = [ctx parse:@"return exBlock('string')" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result isEqualTo:@"block result: string"], @"result is wrong");
+
+    result = [ctx parse:@"return exObject()" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! result && error, @"object called: %@", error);
+}
+
+- (void)testMultipleReturnValues {
+    LuaContext *ctx = [LuaContext new];
+
+    NSError *error = nil;
+
+    [ctx parse:@"function passThrough (...) return ... end" error:&error];
+    XCTAssert( ! error, @"failed to load script: %@", error);
+
+    id result;
+
+    result = [ctx call:"passThrough" with:nil error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( ! result, @"result is wrong");
+
+    result = [ctx call:"passThrough" with:@[@1] error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result isEqualTo:@1], @"result is wrong");
+
+    result = [ctx call:"passThrough" with:@[@1, @2.3, @"string", @YES, @NO] error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result[0] isEqualTo:@1]
+              && [result[1] isEqualTo:@2.3]
+              && [result[2] isEqualToString:@"string"]
+              && [result[3] isEqual:@YES]
+              && [result[4] isEqual:@NO], @"result is wrong");
+
+    result = [ctx parse:@"return none" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( ! result, @"result is wrong");
+
+    result = [ctx parse:@"return 1" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result isEqualTo:@1], @"result is wrong");
+
+    result = [ctx parse:@"return 1, 2.3, 'string', true, false" error:&error];
+    NSLog(@"error: %@", error);
+    XCTAssert( ! error, @"failed to load script: %@", error);
+    XCTAssert( [result[0] isEqualTo:@1]
+              && [result[1] isEqualTo:@2.3]
+              && [result[2] isEqualToString:@"string"]
+              && [result[3] isEqual:@YES]
+              && [result[4] isEqual:@NO], @"result is wrong");
 }
 
 @end

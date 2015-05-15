@@ -176,14 +176,7 @@
 
 @end
 
-@interface LuaExportMetaData () {
-    NSMutableDictionary *exportedProperties;
-    NSMutableDictionary *exportedMethods;
-}
-@end
-
 static inline void setArgumentAt(NSInvocation *invocation, NSUInteger idx, NSUInteger size, id obj) {
-    idx += 2; // skip self & _cmd
     static void* NullArgument = NULL;
     if( obj == [NSNull null] ) {
         [invocation setArgument:&NullArgument atIndex:idx];
@@ -362,6 +355,84 @@ static inline id getObjectResult(NSInvocation *invocation) {
     return result;
 }
 
+@implementation LuaExportBlockMetaData
+
++ (LuaExportBlockMetaData*)blockMetaDataFor:(id)blockObj {
+    return [[self alloc] initWithBlock:blockObj];
+}
+
+- (id)initWithBlock:(id)blockObj {
+    if( (self = [super init]) ) {
+        struct Block {
+            void *isa;
+            int flags;
+            int reserved;
+            void *invoke;
+
+            struct Descriptor {
+                unsigned long reserved;
+                unsigned long size;
+                void *rest[1];
+            } *descriptor;
+        };
+
+        struct Block *block = (__bridge void *)blockObj;
+
+        int copyDisposeFlag = 1 << 25;
+        int signatureFlag = 1 << 30;
+
+        if( block->flags & signatureFlag ) {
+
+            int index = 0;
+            if(block->flags & copyDisposeFlag)
+                index += 2;
+
+            const char *typesStr =  block->descriptor->rest[index];
+
+            NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:typesStr];
+            invocation = [NSInvocation invocationWithMethodSignature:signature];
+            [invocation setTarget:blockObj];
+            [invocation setSelector:nil];
+            NSUInteger num = invocation.methodSignature.numberOfArguments;
+            NSMutableArray *argSizes = [NSMutableArray arrayWithCapacity:(num-1)];
+            for( NSUInteger i = 1; i < num; ++i ) { // skip the first argument (the block itself)
+                NSUInteger size;
+                NSGetSizeAndAlignment([invocation.methodSignature getArgumentTypeAtIndex:i], &size, NULL);
+                [argSizes addObject:@(size)];
+            }
+            argumentSizes = [NSArray arrayWithArray:argSizes];
+        }
+        else
+            self = nil;
+    }
+    return self;
+}
+
+- (id)callWithArgs:(NSArray *)args onInstance:(id)instance {
+    if( ! invocation )
+        return nil;
+
+    [args enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        //NSLog(@"%ld: %s", idx, [metaData->signature getArgumentTypeAtIndex:idx+2]);
+        setArgumentAt(invocation, idx+1 /* skip the block */, [argumentSizes[idx] unsignedIntValue], obj);
+    }];
+    // make sure all un-passed args are nil'd out
+    for( NSUInteger idx = [args count]; idx < [argumentSizes count]; ++idx )
+        setArgumentAt(invocation, idx+1 /* skip the block */, 0, [NSNull null]);
+
+    [invocation invokeWithTarget:instance];
+
+    return getObjectResult(invocation);
+}
+
+@end
+
+@interface LuaExportMetaData () {
+    NSMutableDictionary *exportedProperties;
+    NSMutableDictionary *exportedMethods;
+}
+@end
+
 @implementation LuaExportMetaData
 
 + (LuaExportMetaData*)createExport {
@@ -425,7 +496,7 @@ static inline id getObjectResult(NSInvocation *invocation) {
             [NSException raise:NSInvalidArgumentException format:@"object of type %@ can not be safely assigned to object of type %@", NSStringFromClass(valueClass), NSStringFromClass(metaData->objCType)];
     }
 #endif
-    setArgumentAt(metaData->setter, 0, metaData->propertySize, value);
+    setArgumentAt(metaData->setter, 2 /* skip self & _cmd */, metaData->propertySize, value);
     [metaData->setter invokeWithTarget:instance];
 }
 
@@ -467,11 +538,11 @@ static inline id getObjectResult(NSInvocation *invocation) {
 
     [args enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 //NSLog(@"%ld: %s", idx, [metaData->signature getArgumentTypeAtIndex:idx+2]);
-        setArgumentAt(metaData->invocation, idx, [metaData->argumentSizes[idx] unsignedIntValue], obj);
+        setArgumentAt(metaData->invocation, idx+2 /* skip self & _cmd */, [metaData->argumentSizes[idx] unsignedIntValue], obj);
     }];
     // make sure all un-passed args are nil'd out
     for( NSUInteger idx = [args count]; idx < [metaData->argumentSizes count]; ++idx )
-        setArgumentAt(metaData->invocation, idx, 0, [NSNull null]);
+        setArgumentAt(metaData->invocation, idx+2 /* skip self & _cmd */, 0, [NSNull null]);
 
     [metaData->invocation invokeWithTarget:instance];
 

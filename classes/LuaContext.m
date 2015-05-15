@@ -38,6 +38,7 @@ typedef struct LuaWrapperObject {
 static int luaWrapperIndex(lua_State *L);
 static int luaWrapperNewIndex(lua_State *L);
 static int luaWrapperGC(lua_State *L);
+static int luaWrapperCall(lua_State *L);
 
 static int luaDumpVar(lua_State *L);
 
@@ -45,6 +46,7 @@ static const struct luaL_Reg luaWrapperMetaFunctions[] = {
     {"__index", luaWrapperIndex},
     {"__newindex", luaWrapperNewIndex},
     {"__gc", luaWrapperGC},
+    {"__call", luaWrapperCall},
     {NULL, NULL}
 };
 
@@ -104,35 +106,67 @@ static const luaL_Reg loadedlibs[] = {
         lua_close(L);
 }
 
-- (BOOL)parse:(NSString *)script error:(NSError *__autoreleasing *)error {
-    int result = luaL_dostring(L, [script UTF8String]);
-    if( result == LUA_OK )
-        return YES;
-    if( error ) {
-        *error = [NSError errorWithDomain:LuaErrorDomain
-                                     code:result
-                                 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
+- (id)callWithArgumentsCount:(int)count error:(NSError *__autoreleasing *)error {
+    id result = nil;
+    int err = lua_pcall(L, count, LUA_MULTRET, 0);
+    if( err == LUA_OK ) {
+        int numOfReturnedValues = lua_gettop(L);
+        if( numOfReturnedValues == 1 ) {
+            result = toObjC(L, -1);
+        }
+        else if( numOfReturnedValues > 1 ) {
+            result = [NSMutableArray arrayWithCapacity:numOfReturnedValues];
+            for( int i=0; i<numOfReturnedValues; ++i ) {
+                result[i] = toObjC(L, i+1);
+            }
+        }
+        lua_pop(L, numOfReturnedValues);
+        if( error )
+            *error = nil;
     }
-    return NO;
+    else {
+        if( error )
+            *error = [NSError errorWithDomain:LuaErrorDomain
+                                         code:err
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not evaluate script: %s", lua_tostring(L,-1)] }];
+        lua_pop(L, 1);
+    }
+    return result;
 }
 
-- (BOOL)parseURL:(NSURL *)url error:(NSError *__autoreleasing *)error {
+- (id)parse:(NSString *)script error:(NSError *__autoreleasing *)error {
+    int err = luaL_loadstring(L, [script UTF8String]);
+    if( err == LUA_OK )
+        return [self callWithArgumentsCount:0 error:error];
+    else {
+        if( error )
+            *error = [NSError errorWithDomain:LuaErrorDomain
+                                         code:err
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
+        lua_pop(L, 1);
+    }
+    return nil;
+}
+
+- (id)parseURL:(NSURL *)url error:(NSError *__autoreleasing *)error {
     if( ! [[url scheme] isEqualToString:@"file"] ) {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:LuaError_Invalid
                                      userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid script path '%@'", url] }];
-        return NO;
+        return nil;
     }
-    int result = luaL_dofile(L, [[url path] UTF8String]);
-    if( result == LUA_OK )
-        return YES;
-    if( error ) {
-        *error = [NSError errorWithDomain:LuaErrorDomain
-                                     code:result
-                                 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
+    int err = luaL_loadfile(L, [[url path] UTF8String]);
+    if( err == LUA_OK )
+        return [self callWithArgumentsCount:0 error:error];
+    else {
+        if( error )
+            *error = [NSError errorWithDomain:LuaErrorDomain
+                                         code:err
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
+        lua_pop(L, 1);
     }
-    return NO;
+    return nil;
 }
 
 - (BOOL)fromObjC:(id)object {
@@ -328,13 +362,21 @@ static const luaL_Reg loadedlibs[] = {
             LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
             wrapper->context = (__bridge void*)self;
             wrapper->instance = (__bridge_retained void*)object;
-            wrapper->exportData = (__bridge void*)exportData;
+            wrapper->exportData = (__bridge_retained void*)exportData;
             luaL_getmetatable(L, LuaWrapperObjectMetatableName);
             lua_setmetatable(L, -2);
             //NSLog(@"%@ adding wrapper %p with ed: %p", object, wrapper, exportData);
         }
         else
             return NO;
+    }
+    else if( [object isKindOfClass:[^{} class]] ) {
+        LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
+        wrapper->context = (__bridge void*)self;
+        wrapper->instance = (__bridge_retained void*)object;
+        wrapper->exportData = (__bridge_retained void*)[LuaExportBlockMetaData blockMetaDataFor:object];
+        luaL_getmetatable(L, LuaWrapperObjectMetatableName);
+        lua_setmetatable(L, -2);
     }
     else
         return NO;
@@ -349,7 +391,7 @@ static inline id toObjC(lua_State *L, int index) {
         case LUA_TNUMBER:
             return @(lua_tonumber(L, index));
         case LUA_TBOOLEAN:
-            return @(lua_tonumber(L, index) > 0);
+            return @(lua_toboolean(L, index));
         case LUA_TSTRING:
             return [NSString stringWithUTF8String:lua_tostring(L, index)];
         case LUA_TTABLE:
@@ -428,15 +470,7 @@ static inline id toObjC(lua_State *L, int index) {
     for( id arg in args ) {
         count += [self fromObjC:arg] ? 1 : 0;
     }
-    int err = lua_pcall(L, count, 1, 0);
-    id result = toObjC(L, -1);
-    if( err != LUA_OK ) {
-        if( error )
-            *error = [NSError errorWithDomain:LuaErrorDomain code:err userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"function %s threw an error: %@", name, result] }];
-        result = nil;
-    }
-    lua_pop(L, 1);
-    return result;
+    return [self callWithArgumentsCount:count error:error];
 }
 
 - (id)objectForKeyedSubscript:(id)key {
@@ -557,12 +591,48 @@ int luaWrapperGC(lua_State *L) {
     LuaWrapperObject *wrapper = (LuaWrapperObject*)luaL_checkudata(L, 1, LuaWrapperObjectMetatableName);
     if( wrapper ) {
         id object = (__bridge_transfer id)wrapper->instance;
+        id exportData = (__bridge_transfer id)wrapper->exportData;
         object = nil;
+        exportData = nil;
         return 0;
     }
     else {
         //NSLog("missing object wrapper for disposed object");
         lua_pushfstring(L, "missing object wrapper for disposed object");
+    }
+
+    lua_error(L);
+    return 0;
+}
+
+int luaWrapperCall(lua_State *L) {
+    LuaWrapperObject *wrapper = (LuaWrapperObject*)luaL_checkudata(L, 1, LuaWrapperObjectMetatableName);
+    if( wrapper ) {
+        id object = (__bridge id)wrapper->instance;
+        if( [object isKindOfClass:[^{} class]] ) {
+            int nArgs = lua_gettop(L)-1; // -1 becouse of the block wrapper
+            NSMutableArray *arr = [NSMutableArray arrayWithCapacity:nArgs];
+            for( int i = 1; i <= nArgs; ++i ) {
+                id obj = toObjC(L, 1+i); // block wrapper is 1
+                if( obj )
+                    [arr addObject:obj];
+                else
+                    [arr addObject:[NSNull null]];
+            }
+            LuaExportBlockMetaData *ed = (__bridge LuaExportBlockMetaData*)wrapper->exportData;
+            id obj = (__bridge id)wrapper->instance;
+            id result = [ed callWithArgs:arr onInstance:obj];
+            id context = (__bridge id)wrapper->context;
+            return [context fromObjC:result] ? 1 : 0;
+        }
+        else {
+            //NSLog("called object is not a block");
+            lua_pushfstring(L, "called object is not a block");
+        }
+    }
+    else {
+        //NSLog("missing object wrapper for called object");
+        lua_pushfstring(L, "missing object wrapper for called object");
     }
 
     lua_error(L);
