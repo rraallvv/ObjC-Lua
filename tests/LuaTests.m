@@ -177,6 +177,10 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 	return matrix;
 }
 
+- (void)dealloc {
+    //NSLog(@"dealloc");
+}
+
 @end
 
 @implementation InheritedExportObject

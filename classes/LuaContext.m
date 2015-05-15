@@ -37,12 +37,14 @@ typedef struct LuaWrapperObject {
 
 static int luaWrapperIndex(lua_State *L);
 static int luaWrapperNewIndex(lua_State *L);
+static int luaWrapperGC(lua_State *L);
 
 static int luaDumpVar(lua_State *L);
 
 static const struct luaL_Reg luaWrapperMetaFunctions[] = {
     {"__index", luaWrapperIndex},
     {"__newindex", luaWrapperNewIndex},
+    {"__gc", luaWrapperGC},
     {NULL, NULL}
 };
 
@@ -81,7 +83,7 @@ static const luaL_Reg loadedlibs[] = {
 
         // load the lua libraries
         const luaL_Reg *lib;
-        for (lib = loadedlibs; lib->func; ++lib) {
+        for( lib = loadedlibs; lib->func; ++lib ) {
             luaL_requiref(L, lib->name, lib->func, 1);
             lua_pop(L, 1);  /* remove lib */
         }
@@ -325,7 +327,7 @@ static const luaL_Reg loadedlibs[] = {
             _exportedClasses[clasName] = exportData;
             LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
             wrapper->context = (__bridge void*)self;
-            wrapper->instance = (__bridge void*)object;
+            wrapper->instance = (__bridge_retained void*)object;
             wrapper->exportData = (__bridge void*)exportData;
             luaL_getmetatable(L, LuaWrapperObjectMetatableName);
             lua_setmetatable(L, -2);
@@ -540,6 +542,22 @@ int luaWrapperNewIndex(lua_State *L) {
     else {
         //NSLog(@"missing object wrapper for property '%s'", name);
         lua_pushfstring(L, "missing object wrapper for property '%s'", name);
+    }
+
+    lua_error(L);
+    return 0;
+}
+
+int luaWrapperGC(lua_State *L) {
+    LuaWrapperObject *wrapper = (LuaWrapperObject*)luaL_checkudata(L, 1, LuaWrapperObjectMetatableName);
+    if( wrapper ) {
+        id object = (__bridge_transfer id)wrapper->instance;
+        object = nil;
+        return 0;
+    }
+    else {
+        //NSLog("missing object wrapper for disposed object");
+        lua_pushfstring(L, "missing object wrapper for disposed object");
     }
 
     lua_error(L);
