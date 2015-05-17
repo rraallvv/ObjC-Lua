@@ -236,6 +236,9 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 
 @property (nonatomic, assign) CGFloat floatProperty;
 
++ (instancetype)alloc;
+- (id)init;
+
 - (NSString*)publicMethod;
 
 - (void)voidTakesString:(NSString*)str andNumber:(NSNumber*)num;
@@ -462,6 +465,12 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
+
+    ctx[@"ex"] = [ExportObject class];
+    result = [ctx parse:@"return ex.alloc().init()" error:&error];
+    NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
+    XCTAssert( ! error, @"failed with: %@", error);
+    XCTAssert( [result isKindOfClass:[ExportObject class]], @"result is wrong");
 }
 
 - (void)testComplexType {

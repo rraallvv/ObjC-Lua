@@ -331,34 +331,43 @@ static const luaL_Reg loadedlibs[] = {
                     {
                         unsigned int propertyCount = 0;
                         objc_property_t *properties = protocol_copyPropertyList(protocols[i], &propertyCount);
-                        unsigned int methodCount = 0;
-                        struct objc_method_description *methods = protocol_copyMethodDescriptionList(protocols[i], YES, YES, &methodCount);
+                        for( unsigned int j = 0; j < propertyCount; ++j ) {
+                            const char *name = property_getName(properties[j]);
+                            //NSLog(@"property: %s", name);
+                            [exportData addAllowedProperty:name withAttrs:property_getAttributes(properties[j])];
+                        }
 
-                        if( propertyCount || methodCount ) {
-                            for( unsigned int j = 0; j < propertyCount; ++j ) {
-                                const char *name = property_getName(properties[j]);
-                                //NSLog(@"property: %s", name);
-                                [exportData addAllowedProperty:name withAttrs:property_getAttributes(properties[j])];
-                            }
-                            for( unsigned int k = 0; k < methodCount; ++k ) {
-                                //NSLog(@"method: %s", sel_getName(methods[k].name));
-                                [exportData addAllowedMethod:sel_getName(methods[k].name) withTypes:methods[k].types];
-                            }
+                        unsigned int instanceMethodCount = 0;
+                        struct objc_method_description *instanceMethods = protocol_copyMethodDescriptionList(protocols[i], YES, YES, &instanceMethodCount);
+                        for( unsigned int k = 0; k < instanceMethodCount; ++k ) {
+                            //NSLog(@"instance method: %s", sel_getName(instanceMethods[k].name));
+                            [exportData addAllowedMethod:sel_getName(instanceMethods[k].name) withTypes:instanceMethods[k].types];
+                        }
+
+                        unsigned int classMethodCount = 0;
+                        struct objc_method_description *classMethods = protocol_copyMethodDescriptionList(protocols[i], YES, NO, &classMethodCount);
+                        for( unsigned int k = 0; k < classMethodCount; ++k ) {
+                            //NSLog(@"class method: %s", sel_getName(classMethods[k].name));
+                            [exportData addAllowedMethod:sel_getName(classMethods[k].name) withTypes:classMethods[k].types];
                         }
 
                         free(properties);
                         properties = NULL;
-                        free(methods);
-                        methods = NULL;
+                        free(instanceMethods);
+                        instanceMethods = NULL;
+                        free(classMethods);
+                        classMethods = NULL;
                     }
                 }
                 free(protocols);
                 protocols = NULL;
             }
+
+            if( exportData )
+                _exportedClasses[clasName] = exportData;
         }
 
         if( exportData ) {
-            _exportedClasses[clasName] = exportData;
             LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
             wrapper->context = (__bridge void*)self;
             wrapper->instance = (__bridge_retained void*)object;

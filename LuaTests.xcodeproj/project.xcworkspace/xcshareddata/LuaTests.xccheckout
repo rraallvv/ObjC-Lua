@@ -12,6 +12,8 @@
 	<dict>
 		<key>6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34</key>
 		<string>https://github.com/rraallvv/ObjC-Lua.git</string>
+		<key>9359008975EFF020186C3D7E7C439A0B8C4FBCE8</key>
+		<string>https://github.com/rraallvv/GameEditor</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>LuaTests.xcodeproj</string>
@@ -19,6 +21,8 @@
 	<dict>
 		<key>6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34</key>
 		<string>../..</string>
+		<key>9359008975EFF020186C3D7E7C439A0B8C4FBCE8</key>
+		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/rraallvv/ObjC-Lua.git</string>
@@ -28,6 +32,14 @@
 	<string>6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>9359008975EFF020186C3D7E7C439A0B8C4FBCE8</string>
+			<key>IDESourceControlWCCName</key>
+			<string></string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
