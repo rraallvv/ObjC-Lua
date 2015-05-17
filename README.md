@@ -4,41 +4,47 @@ ObjC-Lua
 A simple Objective-C &lt;-> Lua bridge modeled after iOS 7's JavaScriptCore.
 
 A trivial use might look like this:
+
 ```objective-c
 static NSString *const myScript =
 LUA_STRING(
            globalVar = { 0.0, 1.0 }
-           
+
            function myFunction(parameter)
                return parameter >= globalVar[1] and parameter <= globalVar[2]
            end
+
+           return globalVar[1], globalVar[2]
 );
 
 - (void)doLua {
-    LuaContext *ctx = [LuaContext new];
-    NSError *error = nil;
-    if( ! [ctx parse:myScript error:&error] ) {
-        NSLog(@"Error parsing lua script: %@", error);
-        return;
-    }
+	LuaContext *ctx = [LuaContext new];
+	NSError *error = nil;
 
-    NSLog(@"globalVar is: %@", ctx[@"globalVar"]); // should print "globalVar is: [ 0.0, 1.0 ]"
+	NSArray *limits = [ctx parse:myScript error:&error];
+	if( error ) {
+		NSLog(@"Error parsing lua script: %@", error);
+		return;
+	}
 
-    id result = [ctx call:@"myFunction" args:@[ @0.5 ] error:&error];
-    if( error ) {
-        NSLog(@"Error calling myFunction: %@", error);
-        return;
-    }
-    NSLog(@"myFunction returned: %@", result); // should print "myFunction returned: '1'"
+	NSLog(@"globalVar is: %@", ctx[@"globalVar"]); // should print "globalVar is: [ 0.0, 1.0 ]"
+	NSLog(@"with limits: [ %@, %@ ]", limits[0], limits[1]); // should print "with limits: [ 0.0, 1.0 ]"
 
-    ctx[@"globalVar"] = @[ 0.2, 0.4 ];
+	id result = [ctx call:@"myFunction" with:@[ @0.5 ] error:&error];
+	if( error ) {
+		NSLog(@"Error calling myFunction: %@", error);
+		return;
+	}
+	NSLog(@"myFunction returned: %@", result); // should print "myFunction returned: '1'"
 
-    result = [ctx call:@"myFunction" args:@[ @0.5 ] error:&error];
-    if( error ) {
-        NSLog(@"Error calling myFunction: %@", error);
-        return;
-    }
-    NSLog(@"myFunction returned: %@", result); // should print "myFunction returned: '0'"
+	ctx[@"globalVar"] = @[ @0.2, @0.4 ];
+
+	result = [ctx call:@"myFunction" with:@[ @0.5 ] error:&error];
+	if( error ) {
+		NSLog(@"Error calling myFunction: %@", error);
+		return;
+	}
+	NSLog(@"myFunction returned: %@", result); // should print "myFunction returned: '0'"
 }
 ```
 
@@ -73,12 +79,14 @@ LUA_STRING(
 - (void)doLua:(UIView*)onView {
     LuaContext *ctx = [LuaContext new];
     NSError *error = nil;
-    if( ! [ctx parse:myScript error:&error] ) {
+	
+	[ctx parse:myScript error:&error]
+    if( error ) {
         NSLog(@"Error parsing lua script: %@", error);
         return;
     }
 
-    [ctx call:@"moveView" args:@[ onView ] error:&error];
+    [ctx call:@"moveView" with:@[ onView ] error:&error];
     if( error ) {
         NSLog(@"Error calling myFunction: %@", error);
         return;

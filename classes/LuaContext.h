@@ -70,11 +70,11 @@ typedef NS_ENUM(NSUInteger, LuaErrorCode) {
 - (id)parseURL:(NSURL*)url error:(out NSError**)error;
 /**
  @param name The name of the Lua function that already exists in this context to call.
- @param args Arguments to pass to the function. Any non-specified args will be passed as if they were set to [NSNull null]
+ @param with Arguments to pass to the function. Any non-specified args will be passed as if they were set to [NSNull null]
  @param error will only be set if this method returns `NO`
  @return `YES` on success, otherwise `NO` and `error` will be set
  */
-- (id)call:(char*)name with:(NSArray*)args error:(out NSError**)error;
+- (id)call:(NSString *)name with:(NSArray*)args error:(out NSError**)error;
 
 /**
  @param key The name of a Lua variable to retreive from this context

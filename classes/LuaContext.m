@@ -457,13 +457,13 @@ static inline id toObjC(lua_State *L, int index) {
     }
 }
 
-- (id)call:(char*)name with:(NSArray *)args error:(NSError *__autoreleasing *)error {
-    lua_getglobal(L, name);
+- (id)call:(NSString *)name with:(NSArray *)args error:(NSError *__autoreleasing *)error {
+    lua_getglobal(L, [name UTF8String]);
     if( lua_type(L, -1) != LUA_TFUNCTION ) {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:LuaError_Invalid
-                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Function %s not found", name] }];
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Function %@ not found", name] }];
         return nil;
     }
     int count = 0;

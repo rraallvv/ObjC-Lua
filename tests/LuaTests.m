@@ -286,63 +286,63 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 
     ctx[@"x"] = @5;
     XCTAssert( [ctx[@"x"] intValue] == 5, @"x != 5");
-    result = [ctx call:"say" with:@[ @"test int" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test int" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result intValue] == 5, @"result != 5");
 
     ctx[@"x"] = @YES;
     XCTAssert( [ctx[@"x"] boolValue] == YES, @"x != YES");
-    result = [ctx call:"say" with:@[ @"test bool" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test bool" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result boolValue] == YES, @"result != YES");
 
     ctx[@"x"] = @NO;
     XCTAssert( [ctx[@"x"] boolValue] == NO, @"x != NO");
-    result = [ctx call:"say" with:@[ @"test bool" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test bool" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result boolValue] == NO, @"result != NO");
 
     ctx[@"x"] = @M_PI;
     XCTAssert( [ctx[@"x"] doubleValue] == M_PI, @"x != Pi");
-    result = [ctx call:"say" with:@[ @"test float" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test float" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result doubleValue] == M_PI, @"result != Pi");
 
     ctx[@"x"] = @"string";
     XCTAssert( [ctx[@"x"] isEqualToString:@"string"], @"x != 'string'");
-    result = [ctx call:"say" with:@[ @"test string" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test string" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result isEqualToString:@"string"], @"result != 'string'");
 
     ctx[@"x"] = @[ @3, @2, @1 ];
     XCTAssert( [ctx[@"x"][0] intValue] == 3 && [ctx[@"x"][1] intValue] == 2 && [ctx[@"x"][2] intValue] == 1, @"x != [3, 2, 1]");
-    result = [ctx call:"say" with:@[ @"test array" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test array" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result[0] intValue] == 3 && [result[1] intValue] == 2 && [result[2] intValue] == 1, @"result != [3, 2, 1]");
 
     ctx[@"x"] = @{ @"a": @3, @"b": @2, @"c": @1 };
     XCTAssert( [ctx[@"x"][@"a"] intValue] == 3 && [ctx[@"x"][@"b"] intValue] == 2 && [ctx[@"x"][@"c"] intValue] == 1, @"x != {a=3, b=2, c=1}");
-    result = [ctx call:"say" with:@[ @"test dictionary" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test dictionary" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result[@"a"] intValue] == 3 && [result[@"b"] intValue] == 2 && [result[@"c"] intValue] == 1, @"result != {a=3, b=2, c=1}");
 
     ctx[@"x"] = [NSValue valueWithPoint:CGPointMake(12, 34)];
     XCTAssert( [ctx[@"x"][@"x"] doubleValue] == 12 &&  [ctx[@"x"][@"y"] doubleValue] == 34, @"x != {12, 34}");
-    result = [ctx call:"say" with:@[ @"test point" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test point" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result[@"x"] doubleValue] == 12 &&  [result[@"y"] doubleValue] == 34, @"result != {12, 34}");
 
     ctx[@"x"] = [NSValue valueWithSize:CGSizeMake(12, 34)];
     XCTAssert( [ctx[@"x"][@"width"] doubleValue] == 12 &&  [ctx[@"x"][@"height"] doubleValue] == 34, @"x != {12, 34}");
-    result = [ctx call:"say" with:@[ @"test size" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test size" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result[@"width"] doubleValue] == 12 &&  [result[@"height"] doubleValue] == 34, @"result != {12, 34}");
@@ -350,7 +350,7 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
     ctx[@"x"] = [NSValue valueWithRect:CGRectMake(12, 34, 56, 78)];
     XCTAssert( [ctx[@"x"][@"x"] doubleValue] == 12 && [ctx[@"x"][@"y"] doubleValue] == 34
               && [ctx[@"x"][@"width"] doubleValue] == 56 && [ctx[@"x"][@"height"] doubleValue] == 78,  @"x != {{12, 34}, {56, 78}}");
-    result = [ctx call:"say" with:@[ @"test rect" ] error:&error];
+    result = [ctx call:@"say" with:@[ @"test rect" ] error:&error];
     XCTAssert( ! error, @"failed to run say: %@", error);
     NSLog(@"say returned: %@", result);
     XCTAssert( [result[@"x"] doubleValue] == 12 && [result[@"y"] doubleValue] == 34
@@ -406,24 +406,24 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ExportObject *ex = [ExportObject new];
     ctx[@"ex"] = ex;
 
-    result = [ctx call:"publicFn" with:nil error:&error];
+    result = [ctx call:@"publicFn" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     ex.silence = YES;
     XCTAssert( [result isEqualToString:[ex publicMethod]], @"result is wrong");
     ex.silence = NO;
 
-    result = [ctx call:"publicPr" with:nil error:&error];
+    result = [ctx call:@"publicPr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"floatProp" with:@[ @M_PI ] error:&error];
+    result = [ctx call:@"floatProp" with:@[ @M_PI ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( compareFloatsEpsilon([result floatValue], ex.floatProperty), @"result is wrong");
 
-    result = [ctx call:"privateFn" with:nil error:&error];
+    result = [ctx call:@"privateFn" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     ex.silence = YES;
@@ -431,34 +431,34 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ex.silence = NO;
     error = nil;
 
-    result = [ctx call:"privatePr" with:nil error:&error];
+    result = [ctx call:@"privatePr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     XCTAssert( ! [result isEqualToString:ex.privateString], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"setPublicPr" with:@[ @"new value" ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @"new value" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"setPublicPr" with:@[ @"another value" ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @"another value" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"publicPr" with:nil error:&error];
+    result = [ctx call:@"publicPr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"setPublicPr" with:@[ @5 ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @5 ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"setting string to number succeeded");
     XCTAssert( ! [result isEqualToString:ex.publicString], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"setPublicPr" with:@[ [NSMutableString stringWithString:@"mutable test"] ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ [NSMutableString stringWithString:@"mutable test"] ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
@@ -486,37 +486,37 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ctx[@"ex"] = ex;
     ctx[@"CGAffineTransformIdentity"] = @[ @1.0, @0.0, @0.0, @1.0, @0.0, @0.0 ];
 
-    result = [ctx call:"testVoid" with:nil error:&error];
+    result = [ctx call:@"testVoid" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && ! error, @"failed with: %@", error);
 
-    result = [ctx call:"testRect1" with:nil error:&error];
+    result = [ctx call:@"testRect1" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( [result[@"x"] floatValue] == 1 && [result[@"y"] floatValue] == 2
               && [result[@"width"] floatValue] == 3 && [result[@"height"] floatValue] == 4 , @"wrong result");
 
-    result = [ctx call:"testRect2" with:nil error:&error];
+    result = [ctx call:@"testRect2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( [result[@"x"] floatValue] == 5 && [result[@"y"] floatValue] == 6
               && [result[@"width"] floatValue] == 7 && [result[@"height"] floatValue] == 8 , @"wrong result");
 
-    result = [ctx call:"testFloat" with:nil error:&error];
+    result = [ctx call:@"testFloat" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( compareFloatsEpsilon([result floatValue], M_2_PI) && ! error, @"failed with: %@", error);
 
-    result = [ctx call:"testXForm1" with:nil error:&error];
+    result = [ctx call:@"testXForm1" with:nil error:&error];
     CGAffineTransform expected = CGAffineTransformMakeRotation(1.5);
     NSLog(@"%d result: %@ expected: %@ error: %@", __LINE__, result, StringFromCGAffineTransform(expected), error);
     CGAffineTransform xform = CGAffineTransformFromArray(result);
     XCTAssert( CGAffineTransformEqualToTransformEpsilon(expected, xform) && ! error, @"failed with: %@", error);
 
-    result = [ctx call:"testXForm2" with:nil error:&error];
+    result = [ctx call:@"testXForm2" with:nil error:&error];
     expected = CGAffineTransformMakeRotation(1.5);
     NSLog(@"%d result: %@ expected: %@ error: %@", __LINE__, result, StringFromCGAffineTransform(expected), error);
     xform = CGAffineTransformFromArray(result);
     XCTAssert( CGAffineTransformEqualToTransformEpsilon(expected, xform) && ! error, @"failed with: %@", error);
 
-    result = [ctx call:"test3DXFormPass" with:@[ [NSValue valueWithBytes:&CATransform3DIdentity objCType:@encode(CATransform3D)] ] error:&error];
+    result = [ctx call:@"test3DXFormPass" with:@[ [NSValue valueWithBytes:&CATransform3DIdentity objCType:@encode(CATransform3D)] ] error:&error];
     NSLog(@"%d result: %@ expected: %@ error: %@", __LINE__, result, StringFromCATransform3D(CATransform3DIdentity), error);
     CATransform3D xform3d = CATransform3DFromArray(result);
     XCTAssert( CATransform3DEqualToTransformEpsilon(CATransform3DIdentity, xform3d) && ! error, @"failed with: %@", error);
@@ -547,32 +547,32 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     InheritedPrivateObject *ex = [InheritedPrivateObject new];
     ctx[@"ex"] = ex;
 
-    result = [ctx call:"publicFn" with:nil error:&error];
+    result = [ctx call:@"publicFn" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     ex.silence = YES;
     XCTAssert( [result isEqualToString:[ex publicMethod]], @"result is wrong");
     ex.silence = NO;
 
-    result = [ctx call:"publicFn2" with:nil error:&error];
+    result = [ctx call:@"publicFn2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     ex.silence = YES;
     XCTAssert( [result isEqualToString:[ex publicMethod2]], @"result is wrong");
     ex.silence = NO;
 
-    result = [ctx call:"publicPr" with:nil error:&error];
+    result = [ctx call:@"publicPr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"publicPr2" with:nil error:&error];
+    result = [ctx call:@"publicPr2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString2], @"result is wrong");
 
 
-    result = [ctx call:"privateFn" with:nil error:&error];
+    result = [ctx call:@"privateFn" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     ex.silence = YES;
@@ -580,7 +580,7 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ex.silence = NO;
     error = nil;
 
-    result = [ctx call:"privateFn2" with:nil error:&error];
+    result = [ctx call:@"privateFn2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     ex.silence = YES;
@@ -588,7 +588,7 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ex.silence = NO;
     error = nil;
 
-    result = [ctx call:"privateFn3" with:nil error:&error];
+    result = [ctx call:@"privateFn3" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     ex.silence = YES;
@@ -596,73 +596,73 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     ex.silence = NO;
     error = nil;
 
-    result = [ctx call:"privatePr" with:nil error:&error];
+    result = [ctx call:@"privatePr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     XCTAssert( ! [result isEqualToString:ex.privateString], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"privatePr2" with:nil error:&error];
+    result = [ctx call:@"privatePr2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     XCTAssert( ! [result isEqualToString:ex.privateString2], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"privatePr3" with:nil error:&error];
+    result = [ctx call:@"privatePr3" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"private access succeeded");
     XCTAssert( ! [result isEqualToString:ex.privateString3], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"setPublicPr" with:@[ @"new value" ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @"new value" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"setPublicPr" with:@[ @"another value" ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @"another value" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"publicPr" with:nil error:&error];
+    result = [ctx call:@"publicPr" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
-    result = [ctx call:"setPublicPr" with:@[ @5 ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ @5 ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"setting string to number succeeded");
     XCTAssert( ! [result isEqualToString:ex.publicString], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"setPublicPr" with:@[ [NSMutableString stringWithString:@"mutable test"] ] error:&error];
+    result = [ctx call:@"setPublicPr" with:@[ [NSMutableString stringWithString:@"mutable test"] ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString], @"result is wrong");
 
 
-    result = [ctx call:"setPublicPr2" with:@[ @"new value 2" ] error:&error];
+    result = [ctx call:@"setPublicPr2" with:@[ @"new value 2" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString2], @"result is wrong");
 
-    result = [ctx call:"setPublicPr2" with:@[ @"another value 2" ] error:&error];
+    result = [ctx call:@"setPublicPr2" with:@[ @"another value 2" ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString2], @"result is wrong");
 
-    result = [ctx call:"publicPr2" with:nil error:&error];
+    result = [ctx call:@"publicPr2" with:nil error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString2], @"result is wrong");
 
-    result = [ctx call:"setPublicPr2" with:@[ @6 ] error:&error];
+    result = [ctx call:@"setPublicPr2" with:@[ @6 ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! result && error, @"setting string to number succeeded");
     XCTAssert( ! [result isEqualToString:ex.publicString2], @"result is wrong");
     error = nil;
 
-    result = [ctx call:"setPublicPr2" with:@[ [NSMutableString stringWithString:@"mutable test 2"] ] error:&error];
+    result = [ctx call:@"setPublicPr2" with:@[ [NSMutableString stringWithString:@"mutable test 2"] ] error:&error];
     NSLog(@"%d result: %@ error: %@", __LINE__, result, error);
     XCTAssert( ! error, @"failed with: %@", error);
     XCTAssert( [result isEqualToString:ex.publicString2], @"result is wrong");
@@ -681,23 +681,23 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
 
     id result;
 
-    result = [ctx call:"testPrint" with:@[ @"foo" ] error:&error];
+    result = [ctx call:@"testPrint" with:@[ @"foo" ] error:&error];
     NSLog(@"result: %@ error: %@", result, error);
     XCTAssert( ! error, @"unexpected error: %@", error);
     XCTAssert( [result isEqualToString:@"foo"], @"result is wrong");
 
-    result = [ctx call:"testPrint" with:@[ @1 ] error:&error];
+    result = [ctx call:@"testPrint" with:@[ @1 ] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"unexpected error: %@", error);
     XCTAssert( [result isEqualToString:@"1"], @"result is wrong");
 
-    result = [ctx call:"testPrint" with:@[ @[ @1, @2, @3 ] ] error:&error];
+    result = [ctx call:@"testPrint" with:@[ @[ @1, @2, @3 ] ] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"unexpected error: %@", error);
     // yes, this is dependent on how [NSArray description] behaves, but it's "good enough"
     XCTAssert( [result isEqualToString:@"(\n    1,\n    2,\n    3\n)"], @"result is wrong");
 
-    result = [ctx call:"testPrint" with:@[ @{ @"a": @1, @"b": @2, @"c": @3 } ] error:&error];
+    result = [ctx call:@"testPrint" with:@[ @{ @"a": @1, @"b": @2, @"c": @3 } ] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"unexpected error: %@", error);
     // yes, this is dependent on how [NSDictionary description] behaves, but it's "good enough"
@@ -744,17 +744,17 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
 
     id result;
 
-    result = [ctx call:"passThrough" with:nil error:&error];
+    result = [ctx call:@"passThrough" with:nil error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
     XCTAssert( ! result, @"result is wrong");
 
-    result = [ctx call:"passThrough" with:@[@1] error:&error];
+    result = [ctx call:@"passThrough" with:@[@1] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
     XCTAssert( [result isEqualTo:@1], @"result is wrong");
 
-    result = [ctx call:"passThrough" with:@[@1, @2.3, @"string", @YES, @NO] error:&error];
+    result = [ctx call:@"passThrough" with:@[@1, @2.3, @"string", @YES, @NO] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
     XCTAssert( [result[0] isEqualTo:@1]
