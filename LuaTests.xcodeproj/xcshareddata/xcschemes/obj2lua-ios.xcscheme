@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D4A9E68318A9616C002A9EA5"
-               BuildableName = "libobj2lua-ios.a"
-               BlueprintName = "obj2lua-ios"
+               BuildableName = "libobjc2lua-ios.a"
+               BlueprintName = "objc2lua-ios"
                ReferencedContainer = "container:LuaTests.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,8 +43,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D4A9E68318A9616C002A9EA5"
-            BuildableName = "libobj2lua-ios.a"
-            BlueprintName = "obj2lua-ios"
+            BuildableName = "libobjc2lua-ios.a"
+            BlueprintName = "objc2lua-ios"
             ReferencedContainer = "container:LuaTests.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -61,8 +61,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D4A9E68318A9616C002A9EA5"
-            BuildableName = "libobj2lua-ios.a"
-            BlueprintName = "obj2lua-ios"
+            BuildableName = "libobjc2lua-ios.a"
+            BlueprintName = "objc2lua-ios"
             ReferencedContainer = "container:LuaTests.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

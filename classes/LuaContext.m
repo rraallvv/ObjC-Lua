@@ -17,6 +17,10 @@
 #import "lauxlib.h"
 #import "lualib.h"
 
+#if LUA_VERSION_NUM <= 501
+#define LUA_OK 0
+#endif
+
 #if ! TARGET_OS_IPHONE
 const CATransform3D CATransform3DIdentity = {
     1, 0, 0, 0,
@@ -86,14 +90,29 @@ static const luaL_Reg loadedlibs[] = {
         // load the lua libraries
         const luaL_Reg *lib;
         for( lib = loadedlibs; lib->func; ++lib ) {
+#if LUA_VERSION_NUM <= 501
+            lua_pushcfunction(L, lib->func);
+            lua_pushstring(L, lib->name);
+            lua_call(L, 1, 0);
+#else
             luaL_requiref(L, lib->name, lib->func, 1);
             lua_pop(L, 1);  /* remove lib */
+#endif
         }
 
         lua_register(L, "dumpVar", luaDumpVar);
 
         luaL_newmetatable(L, LuaWrapperObjectMetatableName);
+#if LUA_VERSION_NUM <= 501
+        const luaL_Reg* func;
+        for( func = luaWrapperMetaFunctions; func->func; ++func ) {
+            lua_pushstring(L, func->name);
+            lua_pushcclosure(L, func->func, 0);
+            lua_settable(L, -3);
+        }
+#else
         luaL_setfuncs(L, luaWrapperMetaFunctions, 0);
+#endif
         lua_pop(L, 1);
 
         _exportedClasses = [NSMutableDictionary dictionary];
