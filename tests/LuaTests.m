@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
 #import <XCTest/XCTest.h>
+#import <JavaScriptCore/JavaScriptCore.h>
 
 #import "LuaContext.h"
 #import "LuaExport.h"
@@ -790,6 +791,106 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
               && [result[2] isEqualToString:@"string"]
               && [result[3] isEqual:@YES]
               && [result[4] isEqual:@NO], @"result is wrong");
+}
+
+inline static int triangularNumber(int number) {
+	return number*(number+1)/2;
+}
+
+static void blockPerformanceTest(void(^block )(), int passCount, NSTimeInterval *time, NSTimeInterval *std) {
+	NSMutableArray *passTime = [NSMutableArray arrayWithCapacity:passCount];
+	for (int i=0; i<passCount; ++i) {
+		NSDate *methodStart = [NSDate date];
+
+		block();
+
+		NSDate *methodFinish = [NSDate date];
+		NSTimeInterval executionTime = [methodFinish timeIntervalSinceDate:methodStart];
+		[passTime addObject:@(executionTime)];
+	}
+
+	NSExpression *avgExpression = [NSExpression expressionForFunction:@"average:" arguments:@[[NSExpression expressionForConstantValue:passTime]]];
+	NSTimeInterval avgTime = [[avgExpression expressionValueWithObject:nil context:nil] doubleValue];
+
+	if (time) {
+		*time = avgTime;
+	}
+
+	if (std) {
+		NSExpression *stdExpression = [NSExpression expressionForFunction:@"stddev:" arguments:@[[NSExpression expressionForConstantValue:passTime]]];
+		*std = [[stdExpression expressionValueWithObject:nil context:nil] doubleValue] / avgTime * 100;
+	}
+}
+
+- (void)testPerformance {
+	int count = 100;
+
+	LuaContext *ctx = [LuaContext new];
+	NSString *script = LUA_STRING
+	(
+		function test(n)
+			local x = 0
+			for i = 0,n do
+				x = x + i
+			end
+			return x
+		end
+	);
+
+	[self measureBlock:^{
+		[ctx parse:script error:nil];
+		XCTAssert([[ctx call:@"test" with:@[@(count)] error:nil] intValue] == triangularNumber(count), @"result is wrong");
+	}];
+}
+
+- (void)testPerformanceComparison {
+
+	const int passCount = 100;
+
+
+	LuaContext *luaCtx = [LuaContext new];
+	NSString *luaScript = LUA_STRING
+	(
+		function test(n)
+			local x = 0
+			for i = 0,n do
+				x = x + i
+			end
+			return x
+		end
+	);
+
+	NSTimeInterval luaTime, luaStdev;
+	blockPerformanceTest(^{
+		[luaCtx parse:luaScript error:nil];
+		XCTAssert([[luaCtx call:@"test" with:@[@(passCount)] error:nil] intValue] == triangularNumber(passCount), @"result is wrong");
+	}, passCount, &luaTime, &luaStdev);
+	NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+
+
+	JSContext *jsCtx = [JSContext new];
+	NSString *jsScript = LUA_STRING
+	(
+		function test(n) {
+			var i, x = 0;
+			for (i = 0; i <= n; ++i) {
+				x = x + i;
+			}
+			return x;
+		}
+	);
+
+	NSTimeInterval jsTime, jsStdev;
+	blockPerformanceTest(^{
+		[jsCtx evaluateScript:jsScript];
+		XCTAssert([[jsCtx[@"test"] callWithArguments:@[@(passCount)]] toInt32] == triangularNumber(passCount), @"result is wrong");
+	}, passCount, &jsTime, &jsStdev);
+	NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+
+
+	BOOL result = luaTime < jsTime;
+	NSLog(@"Lua execution time is %s than JavaScript's", result ? "less than" : "greater or equal");
+	XCTAssert(luaTime < jsTime, @"Lua execution time is %s than JavaScript's", result ? "less than" : "greater or equal");
 }
 
 @end

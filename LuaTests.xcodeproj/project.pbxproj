@@ -205,7 +205,7 @@
 		D4A9E68418A9616C002A9EA5 /* libobj2lua-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libobj2lua-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4A9E69418A9616C002A9EA5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		E47E87261B04845B00108EAE /* LuaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LuaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E47E87291B04845B00108EAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
+		E47E87291B04845B00108EAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
