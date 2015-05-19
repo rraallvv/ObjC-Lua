@@ -1,7 +1,14 @@
 language: objective-c
 before_install: sudo easy_install cpp-coveralls
-xcode_project: LuaTests.xcodeproj
-xcode_scheme: objc2lua
+
+env:
+  - SCH=HelloLua SDK=macosx DEST='platform=OS X'
+  - SCH=HelloLua-ios SDK=iphonesimulator DEST='platform=iOS Simulator,name=iPhone 4s'
+  - SCH=HelloLua-ios SDK=iphonesimulator DEST='platform=iOS Simulator,name=iPhone 6'
+
+script:
+  - xctool -project LuaTests.xcodeproj -scheme $SCH -sdk $SDK -destination "$DEST" test
+
 after_success:
   - find ~/Library/Developer/Xcode/DerivedData/ -name "*.gcno" -exec cp -v '{}' . \;
   - find ~/Library/Developer/Xcode/DerivedData/ -name "*.gcda" -exec cp -v '{}' . \;

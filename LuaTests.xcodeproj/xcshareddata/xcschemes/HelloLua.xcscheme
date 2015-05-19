@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D4A9E61718A95F6F002A9EA5"
-               BuildableName = "libobjc2lua.a"
-               BlueprintName = "objc2lua"
+               BlueprintIdentifier = "E4BFB88B1B0BEDDE00B7A691"
+               BuildableName = "HelloLua.app"
+               BlueprintName = "HelloLua"
                ReferencedContainer = "container:LuaTests.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,13 +28,23 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E47E87251B04845B00108EAE"
+               BuildableName = "HelloLuaTests.xctest"
+               BlueprintName = "HelloLuaTests"
+               ReferencedContainer = "container:LuaTests.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4A9E61718A95F6F002A9EA5"
-            BuildableName = "libobjc2lua.a"
-            BlueprintName = "objc2lua"
+            BlueprintIdentifier = "E4BFB88B1B0BEDDE00B7A691"
+            BuildableName = "HelloLua.app"
+            BlueprintName = "HelloLua"
             ReferencedContainer = "container:LuaTests.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -48,15 +58,16 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4A9E61718A95F6F002A9EA5"
-            BuildableName = "libobjc2lua.a"
-            BlueprintName = "objc2lua"
+            BlueprintIdentifier = "E4BFB88B1B0BEDDE00B7A691"
+            BuildableName = "HelloLua.app"
+            BlueprintName = "HelloLua"
             ReferencedContainer = "container:LuaTests.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -66,15 +77,16 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4A9E61718A95F6F002A9EA5"
-            BuildableName = "libobjc2lua.a"
-            BlueprintName = "objc2lua"
+            BlueprintIdentifier = "E4BFB88B1B0BEDDE00B7A691"
+            BuildableName = "HelloLua.app"
+            BlueprintName = "HelloLua"
             ReferencedContainer = "container:LuaTests.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -6,21 +6,52 @@
 #import "LuaContext.h"
 #import "LuaExport.h"
 
-#if TARGET_OS_MAC
+#if TARGET_OS_IPHONE
+
 @interface NSValue (CGAddons)
 
-+ (NSValue *)valueWithCGRect:(CGRect)rect;
-- (CGRect)CGRectValue;
++ (NSValue *)valueWithPoint:(CGPoint)point;
+- (CGPoint)pointValue;
+
++ (NSValue *)valueWithSize:(CGSize)size;
+- (CGSize)sizeValue;
+
++ (NSValue *)valueWithRect:(CGRect)rect;
+- (CGRect)rectValue;
 
 @end
 
 @implementation NSValue (CGAddons)
 
-+ (NSValue *)valueWithCGRect:(CGRect)rect {
++ (NSValue *)valueWithPoint:(CGPoint)point {
+	return [NSValue valueWithBytes:&point objCType:@encode(CGPoint)];
+}
+
+- (CGPoint)pointValue {
+	if( strcmp(@encode(CGPoint), self.objCType) )
+		return CGPointZero;
+	CGPoint point;
+	[self getValue:&point];
+	return point;
+}
+
++ (NSValue *)valueWithSize:(CGSize)size {
+	return [NSValue valueWithBytes:&size objCType:@encode(CGSize)];
+}
+
+- (CGSize)sizeValue {
+	if( strcmp(@encode(CGSize), self.objCType) )
+		return CGSizeZero;
+	CGSize size;
+	[self getValue:&size];
+	return size;
+}
+
++ (NSValue *)valueWithRect:(CGRect)rect {
 	return [NSValue valueWithBytes:&rect objCType:@encode(CGRect)];
 }
 
-- (CGRect)CGRectValue {
+- (CGRect)rectValue {
 	if( strcmp(@encode(CGRect), self.objCType) )
 		return CGRectZero;
 	CGRect rect;
@@ -732,12 +763,12 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     result = [ctx parse:@"return exObject.runBlock(exBlock)" error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result isEqualTo:@"block result: private string"], @"result is wrong");
+    XCTAssert( [result isEqual:@"block result: private string"], @"result is wrong");
 
     result = [ctx parse:@"return exBlock('string')" error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result isEqualTo:@"block result: string"], @"result is wrong");
+    XCTAssert( [result isEqual:@"block result: string"], @"result is wrong");
 
     result = [ctx parse:@"return exObject()" error:&error];
     NSLog(@"error: %@", error);
@@ -762,13 +793,13 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     result = [ctx call:@"passThrough" with:@[@1] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result isEqualTo:@1], @"result is wrong");
+    XCTAssert( [result isEqual:@1], @"result is wrong");
 
     result = [ctx call:@"passThrough" with:@[@1, @2.3, @"string", @YES, @NO] error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result[0] isEqualTo:@1]
-              && [result[1] isEqualTo:@2.3]
+    XCTAssert( [result[0] isEqual:@1]
+              && [result[1] isEqual:@2.3]
               && [result[2] isEqualToString:@"string"]
               && [result[3] isEqual:@YES]
               && [result[4] isEqual:@NO], @"result is wrong");
@@ -781,13 +812,13 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
     result = [ctx parse:@"return 1" error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result isEqualTo:@1], @"result is wrong");
+    XCTAssert( [result isEqual:@1], @"result is wrong");
 
     result = [ctx parse:@"return 1, 2.3, 'string', true, false" error:&error];
     NSLog(@"error: %@", error);
     XCTAssert( ! error, @"failed to load script: %@", error);
-    XCTAssert( [result[0] isEqualTo:@1]
-              && [result[1] isEqualTo:@2.3]
+    XCTAssert( [result[0] isEqual:@1]
+              && [result[1] isEqual:@2.3]
               && [result[2] isEqualToString:@"string"]
               && [result[3] isEqual:@YES]
               && [result[4] isEqual:@NO], @"result is wrong");
