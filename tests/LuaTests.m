@@ -828,100 +828,268 @@ inline static int triangularNumber(int number) {
 	return number*(number+1)/2;
 }
 
-static void blockPerformanceTest(void(^block )(), int passCount, NSTimeInterval *time, NSTimeInterval *std) {
-	NSMutableArray *passTime = [NSMutableArray arrayWithCapacity:passCount];
-	for (int i=0; i<passCount; ++i) {
-		NSDate *methodStart = [NSDate date];
+static void measureBlock(id self, void(^block)(), int passCount, NSTimeInterval *time, NSTimeInterval *stdev) {
+    NSMutableArray *passTimes = [NSMutableArray arrayWithCapacity:passCount];
 
-		block();
+    clock_t startTime, finishTime;
 
-		NSDate *methodFinish = [NSDate date];
-		NSTimeInterval executionTime = [methodFinish timeIntervalSinceDate:methodStart];
-		[passTime addObject:@(executionTime)];
-	}
+    double passTime;
 
-	NSExpression *avgExpression = [NSExpression expressionForFunction:@"average:" arguments:@[[NSExpression expressionForConstantValue:passTime]]];
-	NSTimeInterval avgTime = [[avgExpression expressionValueWithObject:nil context:nil] doubleValue];
+    for( int i=0; i<passCount; ++i ) {
+        startTime = clock();
+        block();
+        finishTime = clock();
+        passTime = (double)(finishTime - startTime) / CLOCKS_PER_SEC;
+        [passTimes addObject:@(passTime)];
+    }
 
-	if (time) {
-		*time = avgTime;
-	}
+    NSExpression *expression;
 
-	if (std) {
-		NSExpression *stdExpression = [NSExpression expressionForFunction:@"stddev:" arguments:@[[NSExpression expressionForConstantValue:passTime]]];
-		*std = [[stdExpression expressionValueWithObject:nil context:nil] doubleValue] / avgTime * 100;
-	}
+    expression = [NSExpression expressionForFunction:@"average:" arguments:@[[NSExpression expressionForConstantValue:passTimes]]];
+    *time = [[expression expressionValueWithObject:nil context:nil] doubleValue];
+
+    expression = [NSExpression expressionForFunction:@"stddev:" arguments:@[[NSExpression expressionForConstantValue:passTimes]]];
+    *stdev = [[expression expressionValueWithObject:nil context:nil] doubleValue] / *time * 100;
 }
+
+static BOOL compareObjects(id lobj, id robj) {
+    if( [lobj isKindOfClass:[NSDictionary class]] ) {
+        for( id key in lobj ) {
+            if( !compareObjects(lobj[key], robj[key]) ) {
+                return NO;
+            }
+        }
+        return YES;
+    }
+    else if( [lobj isKindOfClass:[NSArray class]] ) {
+        for( int i = 0; i < [lobj count]; ++i ) {
+            if( !compareObjects(lobj[i], robj[i]) ) {
+                return NO;
+            }
+        }
+        return YES;
+    }
+    else {
+        return [lobj isEqual:robj];
+    }
+}
+
+static NSString *const luaTriangularNumber = LUA_STRING
+(
+ function triangularNumber(n)
+     local x = 0
+     for i = 0,n do
+         x = x + i
+     end
+     return x
+ end
+ );
+
+static NSString *const luaDictionaryAccess = LUA_STRING
+(
+ local result = {}
+ for k, v in pairs(dictionary) do
+     result[k] = v
+ end
+ return result;
+ );
+
+static NSString *const luaArrayAccess = LUA_STRING
+(
+ local result = {}
+ for i = 1, #array do
+     result[i] = array[i]
+ end
+ return result;
+ );
+
+static NSString *const luaDeepCopy = LUA_STRING
+(
+ local function deepCopy(original)
+     local copy = {}
+     for k, v in pairs(original) do
+         if type(v) == 'table' then
+             v = deepCopy(v)
+         end
+         copy[k] = v
+     end
+     return setmetatable(copy, getmetatable(original));
+ end
+ return deepCopy(object)
+ );
+
+static NSString *const jsTriangularNumber = LUA_STRING
+(
+ function triangularNumber(n) {
+     var i, x = 0;
+     for (i = 0; i <= n; ++i) {
+         x = x + i;
+     }
+     return x;
+ }
+ );
+
+static NSString *const jsDictionaryAccess = LUA_STRING
+(
+ var key, result = {};
+ for (key in dictionary) {
+     result[key] = dictionary[key];
+ }
+ result;
+ );
+
+static NSString *const jsArrayAccess = LUA_STRING
+(
+ var i, result = [];
+ for (i = 0; i < array.length; i++) {
+     result[i] = array[i];
+ }
+ result;
+ );
+
+static NSString *const jsDeepCopy = LUA_STRING
+(
+ function deepCopy(original) {
+     var copy = original.constructor();
+     for(var key in original) {
+         var value = original[key];
+         if(typeof(original[key])=='object' && original[key] != null) {
+             value = deepCopy(value);
+         }
+         copy[key] = value;
+     }
+     return copy;
+ }
+ deepCopy(object)
+ );
 
 - (void)testPerformance {
-	int count = 100;
+    const int passCount = 100;
 
-	LuaContext *ctx = [LuaContext new];
-	NSString *script = LUA_STRING
-	(
-		function test(n)
-			local x = 0
-			for i = 0,n do
-				x = x + i
-			end
-			return x
-		end
-	);
+    NSDictionary *dictionary = @{@"Key1":@1, @"Key2": @2.3, @"Key3": @"four", @"Key4": @YES};
+    NSArray *array = @[@1, @2.3, @"four", @YES];
+    id obj1 = @{@"Key1": dictionary, @"Key2": array};
+    id obj2 = @[dictionary, array];
+    id obj3 = @{@"Key1": array, @"Key2": dictionary};
+    id obj4 = @[array, dictionary];
+    id object = @{@"Key1": obj1, @"Key2": obj2, @"Key3": obj3, @"Key4": obj4};
 
-	[self measureBlock:^{
-		[ctx parse:script error:nil];
-		XCTAssert([[ctx call:@"test" with:@[@(count)] error:nil] intValue] == triangularNumber(count), @"result is wrong");
-	}];
-}
+    NSTimeInterval luaTime, luaStdev, jsTime, jsStdev;
 
-- (void)testPerformanceComparison {
+    BOOL result;
 
-	const int passCount = 100;
+    LuaContext *ctx = [LuaContext new];
 
+    [self measureBlock:^{
+        [ctx parse:luaTriangularNumber error:nil];
+        XCTAssert([[ctx call:@"triangularNumber" with:@[@(passCount)] error:nil] intValue] == triangularNumber(passCount), @"result is wrong");
+    }];
 
-	LuaContext *luaCtx = [LuaContext new];
-	NSString *luaScript = LUA_STRING
-	(
-		function test(n)
-			local x = 0
-			for i = 0,n do
-				x = x + i
-			end
-			return x
-		end
-	);
+    LuaContext *luaCtx = [LuaContext new];
 
-	NSTimeInterval luaTime, luaStdev;
-	blockPerformanceTest(^{
-		[luaCtx parse:luaScript error:nil];
-		XCTAssert([[luaCtx call:@"test" with:@[@(passCount)] error:nil] intValue] == triangularNumber(passCount), @"result is wrong");
-	}, passCount, &luaTime, &luaStdev);
-	NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+    measureBlock(self,
+                 ^{
+                     [luaCtx parse:luaTriangularNumber error:nil];
+                     XCTAssert([[luaCtx call:@"triangularNumber" with:@[@(passCount)] error:nil] intValue] == triangularNumber(passCount), @"result is wrong");
+                 },
+                 passCount,
+                 &luaTime, &luaStdev
+                 );
+    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
 
+    JSContext *jsCtx = [JSContext new];
 
-	JSContext *jsCtx = [JSContext new];
-	NSString *jsScript = LUA_STRING
-	(
-		function test(n) {
-			var i, x = 0;
-			for (i = 0; i <= n; ++i) {
-				x = x + i;
-			}
-			return x;
-		}
-	);
+    measureBlock(self,
+                 ^{
+                     [jsCtx evaluateScript:jsTriangularNumber];
+                     XCTAssert([[jsCtx[@"triangularNumber"] callWithArguments:@[@(passCount)]] toInt32] == triangularNumber(passCount), @"result is wrong");
+                 },
+                 passCount,
+                 &jsTime, &jsStdev
+                 );
+    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
 
-	NSTimeInterval jsTime, jsStdev;
-	blockPerformanceTest(^{
-		[jsCtx evaluateScript:jsScript];
-		XCTAssert([[jsCtx[@"test"] callWithArguments:@[@(passCount)]] toInt32] == triangularNumber(passCount), @"result is wrong");
-	}, passCount, &jsTime, &jsStdev);
-	NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+    result = luaTime < jsTime;
+    NSLog(@"Triangular Number: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+    XCTAssert(result, @"Triangular Number: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
 
+    measureBlock(self,
+                 ^{
+                     luaCtx[@"dictionary"] = dictionary;
+                     NSDictionary *result = [luaCtx parse:luaDictionaryAccess error:nil];
+                     XCTAssert(compareObjects(dictionary, result), @"objects are different");
+                 },
+                 passCount,
+                 &luaTime, &luaStdev
+                 );
+    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
 
-	BOOL result = luaTime < jsTime;
-	NSLog(@"Lua execution time is %s than JavaScript's", result ? "less than" : "greater or equal");
-	XCTAssert(luaTime < jsTime, @"Lua execution time is %s than JavaScript's", result ? "less than" : "greater or equal");
+    measureBlock(self,
+                 ^{
+                     jsCtx[@"dictionary"] = dictionary;
+                     NSDictionary *result = [[jsCtx evaluateScript:jsDictionaryAccess] toDictionary];
+                     XCTAssert(compareObjects(dictionary, result), @"objects are different");
+                 },
+                 passCount,
+                 &jsTime, &jsStdev
+                 );
+    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+
+    result = luaTime < jsTime;
+    NSLog(@"Dictionary access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+    XCTAssert(result, @"Dictionary access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+
+    measureBlock(self,
+                 ^{
+                     luaCtx[@"array"] = array;
+                     NSArray *result = [luaCtx parse:luaArrayAccess error:nil];
+                     XCTAssert(compareObjects(array, result), @"objects are different");
+                 },
+                 passCount,
+                 &luaTime, &luaStdev
+                 );
+    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+
+    measureBlock(self,
+                 ^{
+                     jsCtx[@"array"] = array;
+                     NSArray *result = [[jsCtx evaluateScript:jsArrayAccess] toArray];
+                     XCTAssert(compareObjects(array, result), @"objects are different");
+                 },
+                 passCount,
+                 &jsTime, &jsStdev
+                 );
+    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+
+    result = luaTime < jsTime;
+    NSLog(@"Array access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+    XCTAssert(result, @"Array access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+
+    measureBlock(self,
+                 ^{
+                     luaCtx[@"object"] = object;
+                     id result = [luaCtx parse:luaDeepCopy error:nil];
+                     XCTAssert(compareObjects(object, result), @"objects are different");
+                 },
+                 passCount,
+                 &luaTime, &luaStdev
+                 );
+    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+
+    measureBlock(self,
+                 ^{
+                     jsCtx[@"object"] = object;
+                     id result = [[jsCtx evaluateScript:jsDeepCopy] toObject];
+                     XCTAssert(compareObjects(object, result), @"objects are different");
+                 },
+                 passCount,
+                 &jsTime, &jsStdev
+                 );
+    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+
+    result = luaTime < jsTime;
+    NSLog(@"Deep copy: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
+    XCTAssert(result, @"Deep copy: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
 }
 
 @end
