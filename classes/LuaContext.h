@@ -44,6 +44,10 @@ typedef NS_ENUM(NSUInteger, LuaErrorCode) {
     LuaError_Invalid
 };
 
+@interface LuaVirtualMachine : NSObject
+
+@end
+
 /**
  `LuaContext` contains all the methods needed to parse & call Lua scripts. See the top-level overview for examples.
 
@@ -54,6 +58,9 @@ typedef NS_ENUM(NSUInteger, LuaErrorCode) {
  The context will also translate between NSValue types containing CGPoint, CGSize, CGRect, CGAffineTransform, and CATransform3D structs.
  */
 @interface LuaContext : NSObject
+
+- (id)initWithVirtualMachine:(LuaVirtualMachine *)virtualMachine;
+- (LuaVirtualMachine *)virtualMachine;
 
 /**
  @param script A Lua script to be parsed and added to this context

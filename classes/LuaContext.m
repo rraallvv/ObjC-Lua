@@ -54,13 +54,6 @@ static const struct luaL_Reg luaWrapperMetaFunctions[] = {
     {NULL, NULL}
 };
 
-
-@interface LuaContext () {
-    lua_State *L;
-    NSMutableDictionary *_exportedClasses;
-}
-@end
-
 static int luaPanicked(lua_State *L) {
     NSLog(@"Lua panicked: %s", luaL_checkstring(L, -1));
     return 0;
@@ -80,7 +73,13 @@ static const luaL_Reg loadedlibs[] = {
   {NULL, NULL}
 };
 
-@implementation LuaContext
+@interface LuaVirtualMachine () {
+	lua_State *L;
+	NSMutableDictionary *_exportedClasses;
+}
+@end
+
+@implementation LuaVirtualMachine
 
 - (id)init {
     if( (self = [super init]) ) {
@@ -125,21 +124,72 @@ static const luaL_Reg loadedlibs[] = {
         lua_close(L);
 }
 
+- (lua_State *)state {
+	return L;
+}
+
+- (NSMutableDictionary *)exportedClasses {
+	return _exportedClasses;
+}
+
+@end
+
+@interface LuaContext () {
+    lua_State *C;
+    LuaVirtualMachine *_virtualMachine;
+}
+@end
+
+@implementation LuaContext
+
+- (id)initWithVirtualMachine:(LuaVirtualMachine *)virtualMachine {
+	if( (self = [super init]) ) {
+		_virtualMachine = virtualMachine;
+
+		lua_State *L = _virtualMachine.state;
+
+		C = lua_newthread(L);
+
+		/* Fix globals */
+		lua_newtable(C); /* new table for globals */
+		lua_newtable(C); /* metatable for new globals */
+		lua_pushliteral(C, "__index");
+		lua_pushvalue(C, LUA_GLOBALSINDEX); /* __index tries old common globals */
+		lua_settable(C, -3);
+		lua_setmetatable(C, -2);
+		lua_replace(C, LUA_GLOBALSINDEX);
+	}
+	return self;
+}
+
+- (id)init {
+    return [self initWithVirtualMachine:[LuaVirtualMachine new]];
+}
+
+- (void)dealloc {
+//    if( L )
+//        lua_close(L);
+}
+
+- (LuaVirtualMachine *)virtualMachine {
+	return _virtualMachine;
+}
+
 - (id)callWithArgumentsCount:(int)count error:(NSError *__autoreleasing *)error {
     id result = nil;
-    int err = lua_pcall(L, count, LUA_MULTRET, 0);
+    int err = lua_pcall(C, count, LUA_MULTRET, 0);
     if( err == LUA_OK ) {
-        int numOfReturnedValues = lua_gettop(L);
+        int numOfReturnedValues = lua_gettop(C);
         if( numOfReturnedValues == 1 ) {
-            result = toObjC(L, -1);
+            result = toObjC(C, -1);
         }
         else if( numOfReturnedValues > 1 ) {
             result = [NSMutableArray arrayWithCapacity:numOfReturnedValues];
             for( int i=0; i<numOfReturnedValues; ++i ) {
-                result[i] = toObjC(L, i+1);
+                result[i] = toObjC(C, i+1);
             }
         }
-        lua_pop(L, numOfReturnedValues);
+        lua_pop(C, numOfReturnedValues);
         if( error )
             *error = nil;
     }
@@ -147,22 +197,22 @@ static const luaL_Reg loadedlibs[] = {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:err
-                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not evaluate script: %s", lua_tostring(L,-1)] }];
-        lua_pop(L, 1);
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not evaluate script: %s", lua_tostring(C,-1)] }];
+        lua_pop(C, 1);
     }
     return result;
 }
 
 - (id)parse:(NSString *)script error:(NSError *__autoreleasing *)error {
-    int err = luaL_loadstring(L, [script UTF8String]);
+    int err = luaL_loadstring(C, [script UTF8String]);
     if( err == LUA_OK )
         return [self callWithArgumentsCount:0 error:error];
     else {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:err
-                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
-        lua_pop(L, 1);
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(C,-1)] }];
+        lua_pop(C, 1);
     }
     return nil;
 }
@@ -175,33 +225,33 @@ static const luaL_Reg loadedlibs[] = {
                                      userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid script path '%@'", url] }];
         return nil;
     }
-    int err = luaL_loadfile(L, [[url path] UTF8String]);
+    int err = luaL_loadfile(C, [[url path] UTF8String]);
     if( err == LUA_OK )
         return [self callWithArgumentsCount:0 error:error];
     else {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:err
-                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(L,-1)] }];
-        lua_pop(L, 1);
+                                     userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Could not parse script: %s", lua_tostring(C,-1)] }];
+        lua_pop(C, 1);
     }
     return nil;
 }
 
 - (BOOL)fromObjC:(id)object {
     if( ! object )
-        lua_pushnil(L);
+        lua_pushnil(C);
     else if( [object isKindOfClass:[NSString class]] )
-        lua_pushstring(L, [object UTF8String]);
+        lua_pushstring(C, [object UTF8String]);
     else if( [object isKindOfClass:[NSNumber class]] ) {
         switch( [object objCType][0] ) {
             case _C_FLT:
             case _C_DBL:
-                lua_pushnumber(L, [object doubleValue]);
+                lua_pushnumber(C, [object doubleValue]);
                 break;
             case _C_CHR:
             case _C_UCHR:
-                lua_pushboolean(L, [object boolValue]);
+                lua_pushboolean(C, [object boolValue]);
                 break;
             case _C_SHT:
             case _C_USHT:
@@ -211,25 +261,25 @@ static const luaL_Reg loadedlibs[] = {
             case _C_ULNG:
             case _C_LNG_LNG:
             case _C_ULNG_LNG:
-                lua_pushinteger(L, [object longValue]);
+                lua_pushinteger(C, [object longValue]);
                 break;
             default:
                 return NO;
         }
     }
     else if( [object isKindOfClass:[NSArray class]] ) {
-        lua_newtable(L);
+        lua_newtable(C);
         [object enumerateObjectsUsingBlock:^(id item, NSUInteger idx, BOOL *stop) {
             [self fromObjC:item];
-            lua_rawseti(L, -2, (int)idx + 1); // lua arrays start at 1, not 0
+            lua_rawseti(C, -2, (int)idx + 1); // lua arrays start at 1, not 0
         }];
     }
     else if( [object isKindOfClass:[NSDictionary class]] ) {
-        lua_newtable(L);
+        lua_newtable(C);
         [object enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
             [self fromObjC:key];
             [self fromObjC:obj];
-            lua_rawset(L, -3);
+            lua_rawset(C, -3);
         }];
     }
     else if( [object isKindOfClass:[NSValue class]] ) {
@@ -237,95 +287,95 @@ static const luaL_Reg loadedlibs[] = {
         if( ! strncmp(objType, "{CGRect=", 8) ) {
             CGRect rect;
             [object getValue:&rect];
-            lua_newtable(L);
-            lua_pushstring(L, "x");
-            lua_pushnumber(L, rect.origin.x);
-            lua_rawset(L, -3);
-            lua_pushstring(L, "y");
-            lua_pushnumber(L, rect.origin.y);
-            lua_rawset(L, -3);
-            lua_pushstring(L, "width");
-            lua_pushnumber(L, rect.size.width);
-            lua_rawset(L, -3);
-            lua_pushstring(L, "height");
-            lua_pushnumber(L, rect.size.height);
-            lua_rawset(L, -3);
+            lua_newtable(C);
+            lua_pushstring(C, "x");
+            lua_pushnumber(C, rect.origin.x);
+            lua_rawset(C, -3);
+            lua_pushstring(C, "y");
+            lua_pushnumber(C, rect.origin.y);
+            lua_rawset(C, -3);
+            lua_pushstring(C, "width");
+            lua_pushnumber(C, rect.size.width);
+            lua_rawset(C, -3);
+            lua_pushstring(C, "height");
+            lua_pushnumber(C, rect.size.height);
+            lua_rawset(C, -3);
         }
         else if( ! strncmp(objType, "{CGPoint=", 9) ) {
             CGPoint point;
             [object getValue:&point];
-            lua_newtable(L);
-            lua_pushstring(L, "x");
-            lua_pushnumber(L, point.x);
-            lua_rawset(L, -3);
-            lua_pushstring(L, "y");
-            lua_pushnumber(L, point.y);
-            lua_rawset(L, -3);
+            lua_newtable(C);
+            lua_pushstring(C, "x");
+            lua_pushnumber(C, point.x);
+            lua_rawset(C, -3);
+            lua_pushstring(C, "y");
+            lua_pushnumber(C, point.y);
+            lua_rawset(C, -3);
         }
         else if( ! strncmp(objType, "{CGSize=", 8) ) {
             CGSize cgsize;
             [object getValue:&cgsize];
-            lua_newtable(L);
-            lua_pushstring(L, "width");
-            lua_pushnumber(L, cgsize.width);
-            lua_rawset(L, -3);
-            lua_pushstring(L, "height");
-            lua_pushnumber(L, cgsize.height);
-            lua_rawset(L, -3);
+            lua_newtable(C);
+            lua_pushstring(C, "width");
+            lua_pushnumber(C, cgsize.width);
+            lua_rawset(C, -3);
+            lua_pushstring(C, "height");
+            lua_pushnumber(C, cgsize.height);
+            lua_rawset(C, -3);
         }
         else if( ! strncmp(objType, "{CGAffineTransform=", 19) ) {
             CGAffineTransform xform;
             [object getValue:&xform];
-            lua_newtable(L);
-            lua_pushnumber(L, xform.a);
-            lua_rawseti(L, -2, 1);
-            lua_pushnumber(L, xform.b);
-            lua_rawseti(L, -2, 2);
-            lua_pushnumber(L, xform.c);
-            lua_rawseti(L, -2, 3);
-            lua_pushnumber(L, xform.d);
-            lua_rawseti(L, -2, 4);
-            lua_pushnumber(L, xform.tx);
-            lua_rawseti(L, -2, 5);
-            lua_pushnumber(L, xform.ty);
-            lua_rawseti(L, -2, 6);
+            lua_newtable(C);
+            lua_pushnumber(C, xform.a);
+            lua_rawseti(C, -2, 1);
+            lua_pushnumber(C, xform.b);
+            lua_rawseti(C, -2, 2);
+            lua_pushnumber(C, xform.c);
+            lua_rawseti(C, -2, 3);
+            lua_pushnumber(C, xform.d);
+            lua_rawseti(C, -2, 4);
+            lua_pushnumber(C, xform.tx);
+            lua_rawseti(C, -2, 5);
+            lua_pushnumber(C, xform.ty);
+            lua_rawseti(C, -2, 6);
         }
         else if( ! strncmp(objType, "{CATransform3D=", 15) ) {
             CATransform3D xform;
             [object getValue:&xform];
-            lua_newtable(L);
-            lua_pushnumber(L, xform.m11);
-            lua_rawseti(L, -2, 1);
-            lua_pushnumber(L, xform.m12);
-            lua_rawseti(L, -2, 2);
-            lua_pushnumber(L, xform.m13);
-            lua_rawseti(L, -2, 3);
-            lua_pushnumber(L, xform.m14);
-            lua_rawseti(L, -2, 4);
-            lua_pushnumber(L, xform.m21);
-            lua_rawseti(L, -2, 5);
-            lua_pushnumber(L, xform.m22);
-            lua_rawseti(L, -2, 6);
-            lua_pushnumber(L, xform.m23);
-            lua_rawseti(L, -2, 7);
-            lua_pushnumber(L, xform.m24);
-            lua_rawseti(L, -2, 8);
-            lua_pushnumber(L, xform.m31);
-            lua_rawseti(L, -2, 9);
-            lua_pushnumber(L, xform.m32);
-            lua_rawseti(L, -2, 10);
-            lua_pushnumber(L, xform.m33);
-            lua_rawseti(L, -2, 11);
-            lua_pushnumber(L, xform.m34);
-            lua_rawseti(L, -2, 12);
-            lua_pushnumber(L, xform.m41);
-            lua_rawseti(L, -2, 13);
-            lua_pushnumber(L, xform.m42);
-            lua_rawseti(L, -2, 14);
-            lua_pushnumber(L, xform.m43);
-            lua_rawseti(L, -2, 15);
-            lua_pushnumber(L, xform.m44);
-            lua_rawseti(L, -2, 16);
+            lua_newtable(C);
+            lua_pushnumber(C, xform.m11);
+            lua_rawseti(C, -2, 1);
+            lua_pushnumber(C, xform.m12);
+            lua_rawseti(C, -2, 2);
+            lua_pushnumber(C, xform.m13);
+            lua_rawseti(C, -2, 3);
+            lua_pushnumber(C, xform.m14);
+            lua_rawseti(C, -2, 4);
+            lua_pushnumber(C, xform.m21);
+            lua_rawseti(C, -2, 5);
+            lua_pushnumber(C, xform.m22);
+            lua_rawseti(C, -2, 6);
+            lua_pushnumber(C, xform.m23);
+            lua_rawseti(C, -2, 7);
+            lua_pushnumber(C, xform.m24);
+            lua_rawseti(C, -2, 8);
+            lua_pushnumber(C, xform.m31);
+            lua_rawseti(C, -2, 9);
+            lua_pushnumber(C, xform.m32);
+            lua_rawseti(C, -2, 10);
+            lua_pushnumber(C, xform.m33);
+            lua_rawseti(C, -2, 11);
+            lua_pushnumber(C, xform.m34);
+            lua_rawseti(C, -2, 12);
+            lua_pushnumber(C, xform.m41);
+            lua_rawseti(C, -2, 13);
+            lua_pushnumber(C, xform.m42);
+            lua_rawseti(C, -2, 14);
+            lua_pushnumber(C, xform.m43);
+            lua_rawseti(C, -2, 15);
+            lua_pushnumber(C, xform.m44);
+            lua_rawseti(C, -2, 16);
         }
         else
             return NO;
@@ -333,7 +383,7 @@ static const luaL_Reg loadedlibs[] = {
     else if( [object conformsToProtocol:@protocol(LuaExport)] ) {
         NSString *clasName = NSStringFromClass([object class]);
         //NSLog(@"%@ conforms", clasName);
-        LuaExportMetaData *exportData = _exportedClasses[clasName];
+        LuaExportMetaData *exportData = _virtualMachine.exportedClasses[clasName];
 
         if( ! exportData )
         {
@@ -383,28 +433,28 @@ static const luaL_Reg loadedlibs[] = {
             }
 
             if( exportData )
-                _exportedClasses[clasName] = exportData;
+                _virtualMachine.exportedClasses[clasName] = exportData;
         }
 
         if( exportData ) {
-            LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
+            LuaWrapperObject *wrapper = lua_newuserdata(C, sizeof(*wrapper));
             wrapper->context = (__bridge void*)self;
             wrapper->instance = (__bridge_retained void*)object;
             wrapper->exportData = (__bridge_retained void*)exportData;
-            luaL_getmetatable(L, LuaWrapperObjectMetatableName);
-            lua_setmetatable(L, -2);
+            luaL_getmetatable(C, LuaWrapperObjectMetatableName);
+            lua_setmetatable(C, -2);
             //NSLog(@"%@ adding wrapper %p with ed: %p", object, wrapper, exportData);
         }
         else
             return NO;
     }
     else if( [object isKindOfClass:[^{} class]] ) {
-        LuaWrapperObject *wrapper = lua_newuserdata(L, sizeof(*wrapper));
+        LuaWrapperObject *wrapper = lua_newuserdata(C, sizeof(*wrapper));
         wrapper->context = (__bridge void*)self;
         wrapper->instance = (__bridge_retained void*)object;
         wrapper->exportData = (__bridge_retained void*)[LuaExportBlockMetaData blockMetaDataFor:object];
-        luaL_getmetatable(L, LuaWrapperObjectMetatableName);
-        lua_setmetatable(L, -2);
+        luaL_getmetatable(C, LuaWrapperObjectMetatableName);
+        lua_setmetatable(C, -2);
     }
     else
         return NO;
@@ -486,8 +536,8 @@ static inline id toObjC(lua_State *L, int index) {
 }
 
 - (id)call:(NSString *)name with:(NSArray *)args error:(NSError *__autoreleasing *)error {
-    lua_getglobal(L, [name UTF8String]);
-    if( lua_type(L, -1) != LUA_TFUNCTION ) {
+    lua_getglobal(C, [name UTF8String]);
+    if( lua_type(C, -1) != LUA_TFUNCTION ) {
         if( error )
             *error = [NSError errorWithDomain:LuaErrorDomain
                                          code:LuaError_Invalid
@@ -508,9 +558,9 @@ static inline id toObjC(lua_State *L, int index) {
         else
             key = [key description];
     }
-    lua_getglobal(L, [key UTF8String]);
-    id result = toObjC(L, -1);
-    lua_pop(L, 1);
+    lua_getglobal(C, [key UTF8String]);
+    id result = toObjC(C, -1);
+    lua_pop(C, 1);
     return result;
 }
 
@@ -522,7 +572,7 @@ static inline id toObjC(lua_State *L, int index) {
             key = [key description];
     }
     if( [self fromObjC:object] )
-        lua_setglobal(L, [key UTF8String]);
+        lua_setglobal(C, [key UTF8String]);
 }
 
 @end

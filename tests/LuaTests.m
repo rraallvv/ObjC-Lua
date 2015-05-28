@@ -308,6 +308,46 @@ static inline NSArray* arrayFromCGAffineTransform(const CGAffineTransform xform)
 
 @implementation LuaTests
 
+- (void)testSandbox {
+	LuaContext *ctx1 = [LuaContext new];
+
+	NSError *error = nil;
+
+	id result;
+
+	ExportObject *obj = [ExportObject new];
+
+	ctx1[@"exObject"] = obj;
+	result = [ctx1 parse:@"return exObject" error:&error];
+	NSLog(@"export object to context #1 result: %@ error: %@", result, error);
+	XCTAssert( ! error, @"failed to load script: %@", error);
+	XCTAssert( [result isEqual:obj], @"result is wrong");
+
+	LuaContext *ctx2 = [[LuaContext alloc] initWithVirtualMachine:ctx1.virtualMachine];
+
+	result = [ctx2 parse:@"return exObject" error:&error];
+	NSLog(@"retrieve object from context #2 result: %@ error: %@", result, error);
+	XCTAssert( ! error, @"failed to load script: %@", error);
+	XCTAssert( result == nil, @"result is wrong");
+
+	ctx2[@"exObject"] = ctx1[@"exObject"];
+	result = [ctx2 parse:@"return exObject" error:&error];
+	NSLog(@"copy object from context #1 to context #2 result: %@ error: %@", result, error);
+	XCTAssert( ! error, @"failed to load script: %@", error);
+	XCTAssert( [result isEqual:obj], @"result is wrong");
+
+	[ctx2 parse:@"exObject = nil" error:&error];
+	result = ctx2[@"exObject"];
+	NSLog(@"nil object in context #2 result: %@ error: %@", result, error);
+	XCTAssert( ! error, @"failed to load script: %@", error);
+	XCTAssert( result == nil, @"result is wrong");
+
+	result = ctx1[@"exObject"];
+	NSLog(@"retrieve object from context #1 result: %@ error: %@", result, error);
+	XCTAssert( ! error, @"failed to load script: %@", error);
+	XCTAssert( [result isEqual:obj], @"result is wrong");
+}
+
 - (void)testValue {
     LuaContext *ctx = [LuaContext new];
 
@@ -824,7 +864,7 @@ static inline BOOL CATransform3DEqualToTransformEpsilon(CATransform3D t1, CATran
               && [result[4] isEqual:@NO], @"result is wrong");
 }
 
-inline static int triangularNumber(int number) {
+static inline int triangularNumber(int number) {
 	return number*(number+1)/2;
 }
 
