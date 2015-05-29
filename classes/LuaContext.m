@@ -204,6 +204,13 @@ static const luaL_Reg loadedlibs[] = {
 }
 
 - (id)parse:(NSString *)script error:(NSError *__autoreleasing *)error {
+	if( ! script ) {
+		if( error )
+			*error = [NSError errorWithDomain:LuaErrorDomain
+										 code:LuaError_Invalid
+									 userInfo:@{ NSLocalizedDescriptionKey: @"There is no script to parse" }];
+		return nil;
+	}
     int err = luaL_loadstring(C, [script UTF8String]);
     if( err == LUA_OK )
         return [self callWithArgumentsCount:0 error:error];
