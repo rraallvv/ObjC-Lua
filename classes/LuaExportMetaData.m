@@ -455,7 +455,7 @@ static inline id getObjectResult(NSInvocation *invocation) {
     if( metaData )
         exportedProperties[name] = metaData;
     else
-        NSLog(@"not adding %s", propertyName);
+        NSLog(@"not adding property: %s", propertyName);
 }
 
 - (BOOL)canReadProperty:(const char*)propertyName {
@@ -522,6 +522,8 @@ static inline id getObjectResult(NSInvocation *invocation) {
     LuaExportMethodMetaData *metaData = [LuaExportMethodMetaData methodMetaDataFor:methodName withTypes:types];
     if( metaData )
         exportedMethods[mangled] = metaData;
+	else
+		NSLog(@"not adding method: %s", methodName);
 }
 
 - (BOOL)canCallMethod:(const char*)method {
