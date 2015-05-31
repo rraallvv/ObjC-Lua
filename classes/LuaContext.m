@@ -408,9 +408,8 @@ static const luaL_Reg loadedlibs[] = {
                         unsigned int propertyCount = 0;
                         objc_property_t *properties = protocol_copyPropertyList(protocols[i], &propertyCount);
                         for( unsigned int j = 0; j < propertyCount; ++j ) {
-                            const char *name = property_getName(properties[j]);
-                            //NSLog(@"property: %s", name);
-                            [exportData addAllowedProperty:name withAttrs:property_getAttributes(properties[j])];
+                            //NSLog(@"property: %s", property_getName(properties[j]));
+                            [exportData addAllowedProperty:property_getName(properties[j]) withAttrs:property_getAttributes(properties[j])];
                         }
 
                         unsigned int instanceMethodCount = 0;
@@ -584,6 +583,17 @@ static inline id toObjC(lua_State *L, int index) {
 
 @end
 
+static int luaGetLine(lua_State *L, int level) {
+	lua_Debug ar;
+	if( !lua_getstack(L, level, &ar) )
+		return LUA_NOREF;
+	lua_getinfo(L, "l", &ar);
+	int result = ar.currentline;
+	if( result == LUA_REFNIL )
+		return luaGetLine(L, level + 1);
+	return result;
+}
+
 static int callMethod(lua_State *L) {
     LuaWrapperObject *wrapper = (LuaWrapperObject*)lua_touserdata(L, lua_upvalueindex(1));
     const char *name = lua_tostring(L, lua_upvalueindex(2));
@@ -599,11 +609,19 @@ static int callMethod(lua_State *L) {
                 [arr addObject:[NSNull null]];
         }
         LuaExportMetaData *ed = (__bridge LuaExportMetaData*)wrapper->exportData;
-        id obj = (__bridge id)wrapper->instance;
-        id result = [ed callMethod:name withArgs:arr onInstance:obj];
-        id context = (__bridge id)wrapper->context;
-        return [context fromObjC:result] ? 1 : 0;
+		@try {
+			id obj = (__bridge id)wrapper->instance;
+			id result = [ed callMethod:name withArgs:arr onInstance:obj];
+			id context = (__bridge id)wrapper->context;
+			return [context fromObjC:result] ? 1 : 0;
+		}
+		@catch (NSException *e) {
+			//NSLog(@"%d: exception thrown while calling method '%s': %@", luaGetLine(L, 0), name, e);
+			lua_pushfstring(L, "%d: exception thrown while calling method '%s': %s", luaGetLine(L, 0), name, [[e description] UTF8String]);
+			lua_error(L);
+		}
     }
+
     return 0;
 }
 
@@ -629,10 +647,10 @@ int luaWrapperIndex(lua_State *L) {
             return 1;
         }
         else
-            lua_pushfstring(L, "unable to find method or property '%s'", name);
+            lua_pushfstring(L, "%d: unable to find method or property '%s'", luaGetLine(L, 0), name);
     }
     else
-        lua_pushfstring(L, "missing object wrapper for method or property '%s'", name);
+        lua_pushfstring(L, "%d: missing object wrapper for method or property '%s'", luaGetLine(L, 0), name);
 
     //NSLog(@"  failed");
     lua_error(L);
@@ -654,18 +672,18 @@ int luaWrapperNewIndex(lua_State *L) {
                 return 0;
             }
             @catch (NSException *e) {
-                //NSLog(@"exception thrown while setting property '%s': %@", name, e);
-                lua_pushfstring(L, "exception thrown while setting property '%s': %s", name, [[e description] UTF8String]);
+                //NSLog(@"%d: exception thrown while setting property '%s': %@", luaGetLine(L, 0), name, e);
+                lua_pushfstring(L, "%d: exception thrown while setting property '%s': %s", luaGetLine(L, 0), name, [[e description] UTF8String]);
             }
         }
         else {
-            //NSLog(@"unable to set property '%s'", name);
-            lua_pushfstring(L, "unable to set property '%s'", name);
+            //NSLog(@"%d: unable to set property '%s'", luaGetLine(L, 0), name);
+            lua_pushfstring(L, "%d: unable to set property '%s'", luaGetLine(L, 0),name);
         }
     }
     else {
-        //NSLog(@"missing object wrapper for property '%s'", name);
-        lua_pushfstring(L, "missing object wrapper for property '%s'", name);
+        //NSLog(@"%d: missing object wrapper for property '%s'", luaGetLine(L, 0), name);
+        lua_pushfstring(L, "%d: missing object wrapper for property '%s'", luaGetLine(L, 0),name);
     }
 
     lua_error(L);
@@ -683,7 +701,7 @@ int luaWrapperGC(lua_State *L) {
     }
     else {
         //NSLog("missing object wrapper for disposed object");
-        lua_pushfstring(L, "missing object wrapper for disposed object");
+        lua_pushfstring(L, "%d: missing object wrapper for disposed object", luaGetLine(L, 0));
     }
 
     lua_error(L);
@@ -705,19 +723,25 @@ int luaWrapperCall(lua_State *L) {
                     [arr addObject:[NSNull null]];
             }
             LuaExportBlockMetaData *ed = (__bridge LuaExportBlockMetaData*)wrapper->exportData;
-            id obj = (__bridge id)wrapper->instance;
-            id result = [ed callWithArgs:arr onInstance:obj];
-            id context = (__bridge id)wrapper->context;
-            return [context fromObjC:result] ? 1 : 0;
+			@try {
+				id obj = (__bridge id)wrapper->instance;
+				id result = [ed callWithArgs:arr onInstance:obj];
+				id context = (__bridge id)wrapper->context;
+				return [context fromObjC:result] ? 1 : 0;
+			}
+			@catch (NSException *e) {
+				//NSLog(@"%d: exception thrown while calling block: %@", luaGetLine(L, 0), e);
+				lua_pushfstring(L, "%d: exception thrown while calling block: %s", luaGetLine(L, 0), [[e description] UTF8String]);
+			}
         }
         else {
-            //NSLog("called object is not a block");
-            lua_pushfstring(L, "called object is not a block");
+            //NSLog(@"%d: called object is not a block", luaGetLine(L, 0));
+            lua_pushfstring(L, "%d: called object is not a block", luaGetLine(L, 0));
         }
     }
     else {
-        //NSLog("missing object wrapper for called object");
-        lua_pushfstring(L, "missing object wrapper for called object");
+        //NSLog(@"%d: missing object wrapper for called object", luaGetLine(L, 0));
+        lua_pushfstring(L, "%d: missing object wrapper for called object", luaGetLine(L, 0));
     }
 
     lua_error(L);

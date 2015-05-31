@@ -1035,7 +1035,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &luaTime, &luaStdev
                  );
-    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+    NSLog(@"Lua execution time %f with relative standard deviation %.3f%%", luaTime, luaStdev);
 
     JSContext *jsCtx = [JSContext new];
 
@@ -1047,7 +1047,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &jsTime, &jsStdev
                  );
-    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+    NSLog(@"JavaScript execution time %f with relative standard deviation %.3f%%", jsTime, jsStdev);
 
     result = luaTime < jsTime;
     NSLog(@"Triangular Number: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
@@ -1062,7 +1062,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &luaTime, &luaStdev
                  );
-    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+    NSLog(@"Lua execution time %f with relative standard deviation %.3f%%", luaTime, luaStdev);
 
     measureBlock(self,
                  ^{
@@ -1073,7 +1073,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &jsTime, &jsStdev
                  );
-    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+    NSLog(@"JavaScript execution time %f with relative standard deviation %.3f%%", jsTime, jsStdev);
 
     result = luaTime < jsTime;
     NSLog(@"Dictionary access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
@@ -1088,7 +1088,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &luaTime, &luaStdev
                  );
-    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+    NSLog(@"Lua execution time %f with relative standard deviation %.3f%%", luaTime, luaStdev);
 
     measureBlock(self,
                  ^{
@@ -1099,7 +1099,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &jsTime, &jsStdev
                  );
-    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+    NSLog(@"JavaScript execution time %f with relative standard deviation %.3f%%", jsTime, jsStdev);
 
     result = luaTime < jsTime;
     NSLog(@"Array access: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");
@@ -1114,7 +1114,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &luaTime, &luaStdev
                  );
-    NSLog(@"Lua execution time %f with standard deviation %.3f%%", luaTime, luaStdev);
+    NSLog(@"Lua execution time %f with relative standard deviation %.3f%%", luaTime, luaStdev);
 
     measureBlock(self,
                  ^{
@@ -1125,7 +1125,7 @@ static NSString *const jsDeepCopy = LUA_STRING
                  passCount,
                  &jsTime, &jsStdev
                  );
-    NSLog(@"JavaScript execution time %f with standard deviation %.3f%%", jsTime, jsStdev);
+    NSLog(@"JavaScript execution time %f with relative standard deviation %.3f%%", jsTime, jsStdev);
 
     result = luaTime < jsTime;
     NSLog(@"Deep copy: Lua execution time is %s than JavaScript's", result ? "less" : "greater or equal");

@@ -19,25 +19,28 @@
     NSArray *argumentSizes;
 }
 
-+ (LuaExportMethodMetaData*)methodMetaDataFor:(const char*)name withTypes:(const char*)types;
-- (id)initWithMethod:(const char*)name andTypes:(const char*)types;
++ (LuaExportMethodMetaData*)methodMetaDataFor:(const char*)name withTypes:(const char*)types argsCount:(NSUInteger)count;
+- (id)initWithMethod:(const char*)name andTypes:(const char*)types argsCount:(NSUInteger)count;
 
 @end
 
 @implementation LuaExportMethodMetaData
 
-+ (LuaExportMethodMetaData*)methodMetaDataFor:(const char*)name withTypes:(const char*)types {
-    return [[self alloc] initWithMethod:name andTypes:types];
++ (LuaExportMethodMetaData*)methodMetaDataFor:(const char*)name withTypes:(const char*)types argsCount:(NSUInteger)count {
+    return [[self alloc] initWithMethod:name andTypes:types argsCount:count];
 }
 
-- (id)initWithMethod:(const char*)name andTypes:(const char*)typesStr {
+- (id)initWithMethod:(const char*)name andTypes:(const char*)typesStr argsCount:(NSUInteger)count {
     if( (self = [super init]) ) {
         NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:typesStr];
-        invocation = [NSInvocation invocationWithMethodSignature:signature];
-        [invocation setSelector:sel_registerName(name)];
-        NSUInteger num = invocation.methodSignature.numberOfArguments;
-        NSMutableArray *argSizes = [NSMutableArray arrayWithCapacity:(num-2)];
-        for( NSUInteger i = 2; i < num; ++i ) { // skip the first two (self & _cmd)
+		if( ([signature numberOfArguments] == count) ) {
+			invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setSelector:sel_registerName(name)];
+		}
+		else
+			return nil;
+        NSMutableArray *argSizes = [NSMutableArray arrayWithCapacity:(count-2)];
+        for( NSUInteger i = 2; i < count; ++i ) { // skip the first two (self & _cmd)
             NSUInteger size;
             NSGetSizeAndAlignment([invocation.methodSignature getArgumentTypeAtIndex:i], &size, NULL);
             [argSizes addObject:@(size)];
@@ -83,6 +86,10 @@
                 *stop = YES;
             return *stop;
         }];
+
+		if( idx == NSNotFound )
+			return nil;
+
         NSString *propType = [[propAttrs objectAtIndex:idx] substringFromIndex:1];
 
         NSGetSizeAndAlignment([propType UTF8String], &propertySize, NULL);
@@ -503,25 +510,29 @@ static inline id getObjectResult(NSInvocation *invocation) {
 - (void)addAllowedMethod:(const char*)methodName withTypes:(const char *)types {
     NSString *name = [NSString stringWithUTF8String:methodName];
     NSArray *parts = [name componentsSeparatedByString:@":"];
-    NSMutableString *mangled = [NSMutableString string];
 
-    [parts enumerateObjectsUsingBlock:^(NSString *part, NSUInteger idx, BOOL *stop) {
-        if( ! [part length] )
-            return;
-        if( idx == 0 )
-            [mangled appendString:part];
-        else {
-            unichar first = [part characterAtIndex:0];
-            if( [part length] > 1 )
-                [mangled appendFormat:@"%c%@", toupper(first), [part substringFromIndex:1]];
-            else
-                [mangled appendFormat:@"%c", toupper(first)];
-        }
-    }];
+	NSUInteger argsCount = [parts count] + 1; /* add self, the first element in parts counts as _cmd */;
+    LuaExportMethodMetaData *metaData = [LuaExportMethodMetaData methodMetaDataFor:methodName withTypes:types argsCount:argsCount];
 
-    LuaExportMethodMetaData *metaData = [LuaExportMethodMetaData methodMetaDataFor:methodName withTypes:types];
-    if( metaData )
+	if( metaData ) {
+		NSMutableString *mangled = [NSMutableString string];
+
+		[parts enumerateObjectsUsingBlock:^(NSString *part, NSUInteger idx, BOOL *stop) {
+			if( ! [part length] )
+				return;
+			if( idx == 0 )
+				[mangled appendString:part];
+			else {
+				unichar first = [part characterAtIndex:0];
+				if( [part length] > 1 )
+					[mangled appendFormat:@"%c%@", toupper(first), [part substringFromIndex:1]];
+				else
+					[mangled appendFormat:@"%c", toupper(first)];
+			}
+		}];
+
         exportedMethods[mangled] = metaData;
+	}
 	else
 		NSLog(@"not adding method: %s", methodName);
 }
