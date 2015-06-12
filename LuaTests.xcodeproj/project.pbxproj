@@ -553,7 +553,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "shopt -s extglob\n\nLUADIR=\"$SRCROOT/luajit\"\n\n# Get architectures contained in the fat binary\nLIPO_ARCHS=\"\"\n\nif [ -e $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME ]; then\n    LIPO_ARCHS=`lipo -info $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME | sed -e 's,^Archi.* are: ,,' -e 's,^Non-fat.*ture: ,,'`\nfi\n\nmkdir -p $BUILT_PRODUCTS_DIR\n\nfor ARCH in $ARCHS ; do\n    # Skip build if architecture is already in the fat binary\n\tif [[ $LIPO_ARCHS =~ (^| )$ARCH($| ) ]]; then\n\t\tcontinue\n\tfi\n\n    # Build the library\n\tHOST_ARCH=\"-m32 -arch i386\"\n\n\tif [ \"$ARCH\" == \"arm64\" ] || [ \"$ARCH\" == \"x86_64\" ] ; then\n\t\tHOST_ARCH=\"-m64 -arch x86_64\"\n\tfi\n\n\tTARGET_SYSTEM=\"Darwin\"\n\n\tif [ $PLATFORM_NAME == \"iphoneos\" ] || [ $PLATFORM_NAME == \"iphonesimulator\" ] ; then\n\t\tTARGET_SYSTEM=\"iOS\"\n\tfi\n\n\tmake -C \"$LUADIR\" CC=\"clang\" HOST_CC=\"clang $HOST_ARCH -I/usr/include -isysroot $DEVELOPER_SDK_DIR\" HOST_LDFLAGS=\"-L/usr/lib\" TARGET_SYS=$TARGET_SYSTEM CROSS=\"/usr/bin/\" TARGET_FLAGS=\"-isysroot $SDKROOT -arch $ARCH\" clean amalg\n\n\tif [ ! -e \"$LUADIR/src/libluajit.a\" ]; then\n\t\texit 1\n\tfi\n\n    # Add the library to the fat binary\n\tmv \"$LUADIR/src/libluajit.a\" $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a\n\n    if [ -e $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME ]; then\n        lipo -create $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\n    else\n        lipo -create $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\n    fi\n\n    # Remove all specific architecture libraries\n    rm $BUILT_PRODUCTS_DIR/!($EXECUTABLE_PREFIX$PRODUCT_NAME).a\ndone\n\n# Remove non active architectures from the fat binary\nfor ARCH in $LIPO_ARCHS ; do\n\tif [[ $ARCHS =~ (^| )$ARCH($| ) ]]; then\n\t\tcontinue\n\tfi\n\tlipo $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME -remove $ARCH -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\ndone\n";
+			shellScript = "env -i SRCROOT=\"$SRCROOT\" BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" ARCHS=\"$ARCHS\" PLATFORM_NAME=\"$PLATFORM_NAME\" DEVELOPER_SDK_DIR=\"$DEVELOPER_SDK_DIR\" SDKROOT=\"$SDKROOT\" EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" PRODUCT_NAME=\"$PRODUCT_NAME\" $SRCROOT/build.sh";
 		};
 		E4BFB8871B0BE82600B7A691 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -566,7 +566,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "shopt -s extglob\n\nLUADIR=\"$SRCROOT/luajit\"\n\n# Get architectures contained in the fat binary\nLIPO_ARCHS=\"\"\n\nif [ -e $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME ]; then\n    LIPO_ARCHS=`lipo -info $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME | sed -e 's,^Archi.* are: ,,' -e 's,^Non-fat.*ture: ,,'`\nfi\n\nmkdir -p $BUILT_PRODUCTS_DIR\n\nfor ARCH in $ARCHS ; do\n    # Skip build if architecture is already in the fat binary\n\tif [[ $LIPO_ARCHS =~ (^| )$ARCH($| ) ]]; then\n\t\tcontinue\n\tfi\n\n    # Build the library\n\tHOST_ARCH=\"-m32 -arch i386\"\n\n\tif [ \"$ARCH\" == \"arm64\" ] || [ \"$ARCH\" == \"x86_64\" ] ; then\n\t\tHOST_ARCH=\"-m64 -arch x86_64\"\n\tfi\n\n\tTARGET_SYSTEM=\"Darwin\"\n\n\tif [ $PLATFORM_NAME == \"iphoneos\" ] || [ $PLATFORM_NAME == \"iphonesimulator\" ] ; then\n\t\tTARGET_SYSTEM=\"iOS\"\n\tfi\n\n\tmake -C \"$LUADIR\" CC=\"clang\" HOST_CC=\"clang $HOST_ARCH -I/usr/include -isysroot $DEVELOPER_SDK_DIR\" HOST_LDFLAGS=\"-L/usr/lib\" TARGET_SYS=$TARGET_SYSTEM CROSS=\"/usr/bin/\" TARGET_FLAGS=\"-isysroot $SDKROOT -arch $ARCH\" clean amalg\n\n\tif [ ! -e \"$LUADIR/src/libluajit.a\" ]; then\n\t\texit 1\n\tfi\n\n    # Add the library to the fat binary\n\tmv \"$LUADIR/src/libluajit.a\" $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a\n\n    if [ -e $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME ]; then\n        lipo -create $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\n    else\n        lipo -create $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\n    fi\n\n    # Remove all specific architecture libraries\n    rm $BUILT_PRODUCTS_DIR/!($EXECUTABLE_PREFIX$PRODUCT_NAME).a\ndone\n\n# Remove non active architectures from the fat binary\nfor ARCH in $LIPO_ARCHS ; do\n\tif [[ $ARCHS =~ (^| )$ARCH($| ) ]]; then\n\t\tcontinue\n\tfi\n\tlipo $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME -remove $ARCH -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\ndone\n";
+			shellScript = "env -i SRCROOT=\"$SRCROOT\" BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" ARCHS=\"$ARCHS\" PLATFORM_NAME=\"$PLATFORM_NAME\" DEVELOPER_SDK_DIR=\"$DEVELOPER_SDK_DIR\" SDKROOT=\"$SDKROOT\" EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" PRODUCT_NAME=\"$PRODUCT_NAME\" $SRCROOT/build.sh";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -733,6 +733,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -769,6 +770,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -823,7 +825,6 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/luajit/src",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -842,7 +843,6 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/luajit/src",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -935,6 +935,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1053,7 +1054,6 @@
 				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = "HelloLua-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				"OTHER_LDFLAGS[arch=arm64]" = (
@@ -1093,7 +1093,6 @@
 				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1117,7 +1116,6 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/luajit/src",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1134,7 +1132,6 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1188,7 +1185,6 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1206,7 +1202,6 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1286,7 +1281,6 @@
 				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = "HelloLua-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				"OTHER_LDFLAGS[arch=arm64]" = (
@@ -1318,7 +1312,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = "HelloLua-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				"OTHER_LDFLAGS[arch=arm64]" = (
@@ -1359,7 +1352,6 @@
 				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1384,7 +1376,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
