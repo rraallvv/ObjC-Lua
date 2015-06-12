@@ -7,7 +7,7 @@
 
 shopt -s extglob
 
-LUADIR="$SRCROOT/luajit"
+LUADIR="$SRCROOT/luajit/src"
 
 # Get architectures contained in the fat binary
 LIPO_ARCHS=""
@@ -32,19 +32,39 @@ for ARCH in $ARCHS ; do
 	fi
 
 	TARGET_SYSTEM="Darwin"
+	MINVER="-mmacosx-version-min=$MAXOSX_DEPLOYMENT_TARGET"
 
 	if [ $PLATFORM_NAME == "iphoneos" ] || [ $PLATFORM_NAME == "iphonesimulator" ] ; then
 		TARGET_SYSTEM="iOS"
+		if [ $PLATFORM_NAME == "iphoneos" ] ; then
+			MINVER="-miphoneos-version-min=$IPHONEOS_DEPLOYMENT_TARGET"
+			unset IOS_SIMULATOR_DEPLOYMENT_TARGET
+		else
+			MINVER="-mios-simulator-version-min=$IOS_SIMULATOR_DEPLOYMENT_TARGET"
+			unset IPHONEOS_DEPLOYMENT_TARGET
+		fi
+		unset MAXOSX_DEPLOYMENT_TARGET
+	else
+		unset IPHONEOS_DEPLOYMENT_TARGET
+		unset IOS_SIMULATOR_DEPLOYMENT_TARGET
 	fi
 
-	make -C "$LUADIR" CC="clang" HOST_CC="clang $HOST_ARCH -I/usr/include -isysroot $DEVELOPER_SDK_DIR" HOST_LDFLAGS="-L/usr/lib" TARGET_SYS=$TARGET_SYSTEM CROSS="/usr/bin/" TARGET_FLAGS="-isysroot $SDKROOT -arch $ARCH" clean amalg
+	make -C "$LUADIR" \
+		BUILDMODE=static \
+		CC="clang" \
+		CROSS="$TOOLCHAIN_DIR/usr/bin/" \
+		HOST_CC="clang $HOST_ARCH -I/usr/include -isysroot $DEVELOPER_SDK_DIR" \
+		HOST_LDFLAGS="-L/usr/lib" \
+		TARGET_FLAGS="-isysroot $SDKROOT -arch $ARCH" \
+		TARGET_SYS=$TARGET_SYSTEM \
+		clean libluajit.a
 
-	if [ ! -e "$LUADIR/src/libluajit.a" ]; then
+	if [ ! -e "$LUADIR/libluajit.a" ]; then
 		exit 1
 	fi
 
     # Add the library to the fat binary
-	mv "$LUADIR/src/libluajit.a" $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a
+	mv "$LUADIR/libluajit.a" $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a
 
     if [ -e $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME ]; then
         lipo -create $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME $BUILT_PRODUCTS_DIR/libluajit-$ARCH.a -output $BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME

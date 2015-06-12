@@ -399,7 +399,7 @@ static inline id getObjectResult(NSInvocation *invocation) {
             NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:typesStr];
             invocation = [NSInvocation invocationWithMethodSignature:signature];
             [invocation setTarget:blockObj];
-            [invocation setSelector:nil];
+            //[invocation setSelector:nil];
             NSUInteger num = invocation.methodSignature.numberOfArguments;
             NSMutableArray *argSizes = [NSMutableArray arrayWithCapacity:(num-1)];
             for( NSUInteger i = 1; i < num; ++i ) { // skip the first argument (the block itself)
