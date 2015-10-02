@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34" : 0,
+    "9359008975EFF020186C3D7E7C439A0B8C4FBCE8" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C9DF81DD-9AFA-44AC-ABD6-37CD2398F763",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34" : "ObjC-Lua",
+    "9359008975EFF020186C3D7E7C439A0B8C4FBCE8" : ""
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "LuaTests",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "LuaTests.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/rraallvv\/ObjC-Lua",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "6CC0C71A8B2F148D3C004E2F6F8583C6298F2A34"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/rraallvv\/GameEditor",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "9359008975EFF020186C3D7E7C439A0B8C4FBCE8"
+    }
+  ]
+}

@@ -456,7 +456,7 @@
 		D4A9E52118A95B69002A9EA5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Sean Meiners";
 				TargetAttributes = {
 					E47E87251B04845B00108EAE = {
@@ -553,7 +553,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "env -i \\\n    ISDK=\"$SDKROOT\" \\\n    ARCHS=\"$ARCHS\" \\\n    PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" \\\n    EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" \\\n    PRODUCT_NAME=\"$PRODUCT_NAME\" \\\n    MACOSX_MINVER=\"$MACOSX_DEPLOYMENT_TARGET\" \\\n    IPHONEOS_MINVER=\"$IPHONEOS_DEPLOYMENT_TARGET\" \\\n    IOS_SIMULATOR_MINVER=\"$IOS_SIMULATOR_DEPLOYMENT_TARGET\" \\\n    $SRCROOT/build-luajit.sh";
+			shellScript = "env -i \\\n    ISDK=\"$SDKROOT\" \\\n    ARCHS=\"$ARCHS\" \\\n    PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" \\\n    EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" \\\n    PRODUCT_NAME=\"$PRODUCT_NAME\" \\\n    MACOSX_MINVER=\"$MACOSX_DEPLOYMENT_TARGET\" \\\n    IPHONEOS_MINVER=\"$IPHONEOS_DEPLOYMENT_TARGET\" \\\n    $SRCROOT/build-luajit.sh";
 		};
 		E4BFB8871B0BE82600B7A691 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -566,7 +566,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "env -i \\\n    ISDK=\"$SDKROOT\" \\\n    ARCHS=\"$ARCHS\" \\\n    PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" \\\n    EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" \\\n    PRODUCT_NAME=\"$PRODUCT_NAME\" \\\n    MACOSX_MINVER=\"$MACOSX_DEPLOYMENT_TARGET\" \\\n    IPHONEOS_MINVER=\"$IPHONEOS_DEPLOYMENT_TARGET\" \\\n    IOS_SIMULATOR_MINVER=\"$IOS_SIMULATOR_DEPLOYMENT_TARGET\" \\\n    $SRCROOT/build-luajit.sh";
+			shellScript = "env -i \\\n    ISDK=\"$SDKROOT\" \\\n    ARCHS=\"$ARCHS\" \\\n    PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    EXECUTABLE_NAME=\"$EXECUTABLE_NAME\" \\\n    EXECUTABLE_PREFIX=\"$EXECUTABLE_PREFIX\" \\\n    PRODUCT_NAME=\"$PRODUCT_NAME\" \\\n    MACOSX_MINVER=\"$MACOSX_DEPLOYMENT_TARGET\" \\\n    IPHONEOS_MINVER=\"$IPHONEOS_DEPLOYMENT_TARGET\" \\\n    $SRCROOT/build-luajit.sh";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -718,6 +718,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_BITCODE = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -875,6 +876,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua.app/Contents/MacOS/HelloLua";
 			};
@@ -898,6 +900,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua.app/Contents/MacOS/HelloLua";
 			};
@@ -972,6 +975,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Test;
@@ -998,6 +1002,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua.app/Contents/MacOS/HelloLua";
 			};
@@ -1045,6 +1050,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1071,6 +1077,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
@@ -1085,10 +1092,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1098,6 +1101,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua-ios.app/HelloLua-ios";
@@ -1239,6 +1243,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1264,6 +1269,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -1272,6 +1278,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1298,6 +1305,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
@@ -1307,6 +1315,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1329,6 +1338,7 @@
 					"-image_base",
 					100000000,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -1344,10 +1354,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1357,6 +1363,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua-ios.app/HelloLua-ios";
@@ -1372,15 +1379,12 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "developer.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HelloLua-ios.app/HelloLua-ios";

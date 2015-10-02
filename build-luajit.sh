@@ -21,7 +21,6 @@
 #		PRODUCT_NAME="$PRODUCT_NAME" \
 #		MACOSX_MINVER="$MACOSX_DEPLOYMENT_TARGET" \
 #		IPHONEOS_MINVER="$IPHONEOS_DEPLOYMENT_TARGET" \
-#		IOS_SIMULATOR_MINVER="$IOS_SIMULATOR_DEPLOYMENT_TARGET" \
 #		$SRCROOT/build-luajit.sh
 #
 ################################################################################
@@ -57,16 +56,12 @@ for ARCH in $ARCHS ; do
 		HOST_ARCH="-m64 -arch x86_64"
 	fi
 
-	TARGET_SYSTEM="Darwin"
-	MINVER="-mmacosx-version-min=$MACOSX_MINVER"
-
 	if [ $PLATFORM_NAME == "iphoneos" ] || [ $PLATFORM_NAME == "iphonesimulator" ] ; then
 		TARGET_SYSTEM="iOS"
-		if [ $PLATFORM_NAME == "iphoneos" ] ; then
-			MINVER="-miphoneos-version-min=$IPHONEOS_MINVER"
-		else
-			MINVER="-mios-simulator-version-min=$IOS_SIMULATOR_MINVER"
-		fi
+		MINVER="-miphoneos-version-min=$IPHONEOS_MINVER"
+	else
+		TARGET_SYSTEM="Darwin"
+		MINVER="-mmacosx-version-min=$MACOSX_MINVER"
 	fi
 
 	make -C $LUAJIT \
